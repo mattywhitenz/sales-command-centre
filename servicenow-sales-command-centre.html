@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ServiceNow Sales Command Centre</title>
+<style>
+:root{
+  --inf-blue:#032D42;
+  --dark-teal:#044355;
+  --wasabi:#63DF4E;
+  --wasabi-dim:#4ab83c;
+  --amber:#F5A623;
+  --red:#E8394D;
+  --green:#63DF4E;
+  --white:#fff;
+  --off-white:#f4f6f8;
+  --mid:#8ca0ad;
+  --border:#1a4a5c;
+  --card-bg:#05374d;
+  --drawer-bg:#031f2f;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+  --mono:'SF Mono','Consolas','Courier New',monospace;
+  --purple:#a78bfa;
+  --blue:#7bcfe8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--inf-blue);color:var(--white);font-family:var(--font);font-size:14px;min-height:100vh}
+.hdr{background:linear-gradient(135deg,var(--dark-teal),var(--inf-blue));padding:18px 24px;border-bottom:2px solid var(--wasabi);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.hdr-left{display:flex;flex-direction:column;gap:4px}
+.hdr-title{font-size:20px;font-weight:700;color:var(--wasabi);letter-spacing:.5px}
+.hdr-sub{font-size:12px;color:var(--mid)}
+.hdr-meta{font-size:11px;color:var(--mid);margin-top:2px}
+.hdr-badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.bdg{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.bdg.grn{background:rgba(99,223,78,.15);color:var(--wasabi);border:1px solid var(--wasabi)}
+.bdg.amb{background:rgba(245,166,35,.15);color:var(--amber);border:1px solid var(--amber)}
+.bdg.red{background:rgba(232,57,77,.15);color:var(--red);border:1px solid var(--red)}
+.bdg.inf{background:rgba(4,67,85,.6);color:#7bcfe8;border:1px solid #1a6c8a}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:16px 24px}
+.sc{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .2s}
+.sc:hover{border-color:var(--wasabi)}
+.sc-lbl{font-size:10px;color:var(--mid);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.sc-val{font-size:22px;font-weight:700;color:var(--wasabi)}
+.sc-val.a{color:var(--amber)}
+.sc-sub{font-size:10px;color:var(--mid);margin-top:4px}
+.tabs{display:flex;gap:0;padding:0 24px;border-bottom:1px solid var(--border)}
+.tab{padding:10px 20px;font-size:12px;font-weight:600;color:var(--mid);cursor:pointer;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.5px;transition:all .2s}
+.tab:hover{color:var(--white)}
+.tab.active{color:var(--wasabi);border-bottom-color:var(--wasabi)}
+.section{padding:20px 24px}
+.section-title{font-size:13px;font-weight:700;color:var(--wasabi);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--dark-teal);padding:10px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--mid);text-align:left;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(4,67,85,.5)}
+td{padding:9px 12px;font-size:12px;vertical-align:middle}
+.nnacv-pos{font-weight:700;color:var(--wasabi)}
+.nnacv-neg{font-weight:700;color:var(--red)}
+.nnacv-zero{color:var(--mid)}
+.dsell-flag{font-size:9px;font-weight:700;color:var(--red);background:rgba(232,57,77,.15);padding:1px 4px;border-radius:3px;border:1px solid rgba(232,57,77,.3)}
+.prob-chip{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.stage-bar{display:inline-block;height:3px;vertical-align:middle;border-radius:2px;margin-left:6px;background:var(--wasabi);opacity:.4}
+.ae-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.ae-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s}
+.ae-card:hover{border-color:var(--wasabi);transform:translateY(-1px)}
+.ae-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ae-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.ae-name{font-size:14px;font-weight:700;color:var(--white)}
+.ae-terr{font-size:10px;color:var(--mid);font-family:var(--mono);margin-top:2px}
+.ae-dist{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
+.ae-dist.str{background:rgba(99,223,78,.12);color:var(--wasabi);border:1px solid rgba(99,223,78,.3)}
+.ae-dist.ent{background:rgba(123,207,232,.1);color:#7bcfe8;border:1px solid rgba(123,207,232,.3)}
+.ae-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.ae-stat{text-align:center;background:rgba(0,0,0,.15);border-radius:8px;padding:8px 6px}
+.ae-stat-val{font-size:15px;font-weight:700;color:var(--wasabi)}
+.ae-stat-val.a{color:var(--amber)}
+.ae-stat-lbl{font-size:9px;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.ae-badge-btn{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid currentColor;background:transparent;transition:opacity .15s;font-family:var(--mono)}
+.ae-badge-btn:hover{opacity:.8}
+.ae-badge-btn.red{color:var(--red)}
+.ae-badge-btn.amb{color:var(--amber)}
+.ae-badge-btn.grn{color:var(--wasabi)}
+.ae-ds-tile{background:rgba(232,57,77,.07);border:1px solid rgba(232,57,77,.2);border-radius:6px;padding:6px 10px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ae-ds-label{font-size:9px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px}
+.ae-ds-val{font-size:13px;font-weight:700;color:var(--red)}
+.ae-ds-note{font-size:10px;color:var(--mid);line-height:1.3}
+.ae-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;align-items:center;justify-content:center;padding:16px}
+.ae-modal-overlay.open{display:flex}
+.ae-modal{background:var(--drawer-bg);border:1px solid var(--border);border-radius:14px;width:min(700px,96vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.ae-modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--dark-teal),var(--inf-blue))}
+.ae-modal-hdr-left{display:flex;align-items:center;gap:12px;flex:1}
+.ae-modal-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0}
+.ae-modal-title{font-size:16px;font-weight:700;color:var(--white)}
+.ae-modal-sub{font-size:11px;color:var(--mid);margin-top:2px}
+.ae-modal-close{background:none;border:none;color:var(--mid);font-size:22px;cursor:pointer;padding:0 4px}
+.ae-modal-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.1)}
+.ae-modal-stat{text-align:center}
+.ae-modal-stat-val{font-size:16px;font-weight:700;color:var(--wasabi)}
+.ae-modal-stat-val.a{color:var(--amber)}
+.ae-modal-stat-lbl{font-size:10px;color:var(--mid);text-transform:uppercase;letter-spacing:.4px}
+.ae-modal-tabs{display:flex;border-bottom:1px solid var(--border)}
+.ae-modal-tab{padding:10px 18px;font-size:11px;font-weight:600;color:var(--mid);cursor:pointer;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.5px}
+.ae-modal-tab.active{color:var(--wasabi);border-bottom-color:var(--wasabi)}
+.ae-modal-body{padding:16px 20px;overflow-y:auto;flex:1}
+.ae-deal-card{background:var(--inf-blue);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.ae-deal-card-hdr{padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:background .15s}
+.ae-deal-card-hdr:hover{background:rgba(4,67,85,.5)}
+.ae-deal-card-body{display:none;padding:12px;border-top:1px solid var(--border)}
+.ae-deal-card-body.open{display:block}
+.ae-deal-ns-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.ae-deal-coach-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:10px}
+.ae-deal-coach-tab{padding:6px 12px;font-size:11px;font-weight:600;color:var(--mid);cursor:pointer;border-bottom:2px solid transparent}
+.ae-deal-coach-tab.active{color:var(--wasabi);border-bottom-color:var(--wasabi)}
+.ae-deal-coach-pane{display:none}
+.ae-deal-coach-pane.active{display:block}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:400;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--drawer-bg);border:1px solid var(--border);border-radius:14px;width:min(620px,96vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;background:linear-gradient(135deg,var(--dark-teal),var(--inf-blue))}
+.modal-title{font-size:16px;font-weight:700;color:var(--white)}
+.modal-sub{font-size:11px;color:var(--mid);margin-top:2px}
+.modal-close{background:none;border:none;color:var(--mid);font-size:22px;cursor:pointer;line-height:1;padding:0 4px}
+.modal-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--drawer-bg)}
+.modal-tab{padding:9px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--mid);cursor:pointer;border-bottom:2px solid transparent}
+.modal-tab.active{color:var(--wasabi);border-bottom-color:var(--wasabi)}
+.modal-body{padding:16px 20px;overflow-y:auto;flex:1}
+.ns-tbl{width:100%;border-collapse:collapse;margin-bottom:12px}
+.ns-tbl th{background:var(--dark-teal);padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--mid);text-align:left}
+.ns-tbl td{padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border)}
+.mc{cursor:pointer;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;transition:all .15s;display:inline-block;margin:1px;white-space:nowrap}
+.mc:hover{opacity:.8;transform:scale(1.1)}
+.mc.r{background:rgba(232,57,77,.2);color:var(--red);border:1px solid var(--red)}
+.mc.a{background:rgba(245,166,35,.2);color:var(--amber);border:1px solid var(--amber)}
+.mc.g{background:rgba(99,223,78,.2);color:var(--wasabi);border:1px solid var(--wasabi)}
+.nowsell-cell{white-space:normal;min-width:200px;line-height:1.8}
+.actions-cell{white-space:nowrap;min-width:180px}
+.coaching-drawer{display:none;background:var(--inf-blue);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:8px}
+.coaching-drawer.open{display:block}
+.cd-title{font-size:12px;font-weight:700;color:var(--wasabi);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.cd-section{margin-bottom:10px}
+.cd-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mid);margin-bottom:4px}
+.cd-text{font-size:12px;line-height:1.5;color:var(--off-white)}
+.cd-steps{padding-left:16px}
+.cd-steps li{font-size:12px;line-height:1.5;color:var(--off-white);margin-bottom:4px}
+.cd-crm-link{display:inline-block;margin-top:6px;padding:5px 10px;background:rgba(4,67,85,.7);border:1px solid var(--border);border-radius:6px;color:#7bcfe8;font-size:11px;font-family:var(--mono);text-decoration:none}
+.coach-grid{display:grid;grid-template-columns:1fr;gap:16px}
+.coach-card{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:16px}
+.coach-action-item{font-size:11px;color:var(--off-white);padding:4px 0;padding-left:12px;position:relative;line-height:1.4}
+.coach-action-item::before{content:"→";position:absolute;left:0;color:var(--wasabi)}
+.wr-panel{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:20px}
+.wr-title{font-size:15px;font-weight:700;color:var(--wasabi);margin-bottom:8px}
+.wr-text{font-size:13px;line-height:1.7;color:var(--off-white);margin-bottom:16px;white-space:pre-line}
+.wr-controls{display:flex;gap:10px;flex-wrap:wrap}
+.wr-btn{padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:opacity .2s;letter-spacing:.3px}
+.wr-btn:hover{opacity:.85}
+.wr-btn.play{background:var(--wasabi);color:var(--inf-blue)}
+.wr-btn.stop{background:var(--red);color:#fff}
+.wr-status{font-size:11px;color:var(--mid);margin-top:8px}
+.won-footer{background:var(--dark-teal);font-weight:700}
+.won-footer td{color:var(--wasabi)}
+.qtr-prompt{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:14px}
+.qtr-prompt-icon{font-size:38px}
+.qtr-prompt-title{font-size:18px;font-weight:700;color:var(--white)}
+.qtr-prompt-meta{font-size:12px;color:var(--mid)}
+.qtr-prompt-stats{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:4px 0 8px}
+.qtr-stat-pill{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:10px 18px;text-align:center;min-width:100px}
+.qtr-stat-pill-val{font-size:20px;font-weight:700;color:var(--wasabi)}
+.qtr-stat-pill-lbl{font-size:10px;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.run-btn{padding:12px 28px;background:var(--wasabi);color:var(--inf-blue);font-weight:700;border:none;border-radius:10px;cursor:pointer;font-size:13px;letter-spacing:.3px;transition:opacity .2s;display:inline-flex;align-items:center;gap:8px}
+.run-btn:hover{opacity:.85}
+.run-btn:disabled{opacity:.45;cursor:not-allowed}
+.run-btn .spinner{width:13px;height:13px;border:2px solid rgba(3,45,66,.6);border-top-color:var(--inf-blue);border-radius:50%;animation:spin .7s linear infinite;display:none;flex-shrink:0}
+.run-btn.loading .spinner{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.qtr-status{font-size:11px;color:var(--mid);min-height:16px;text-align:center}
+.qtr-results{width:100%;text-align:left;margin-top:4px}
+.crm-a{color:#7bcfe8;text-decoration:none;font-family:var(--mono);font-size:11px}
+.crm-a:hover{text-decoration:underline}
+.act-btn{padding:4px 8px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--dark-teal);color:var(--mid);transition:all .15s;margin:0 2px}
+.act-btn:hover{border-color:var(--wasabi);color:var(--wasabi)}
+.crm-btn{text-decoration:none;display:inline-block;color:#7bcfe8 !important;border-color:#1a6c8a !important;background:rgba(4,67,85,.8) !important}
+.crm-btn:hover{border-color:#7bcfe8 !important;color:#fff !important}
+.hg-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center}
+.hg-overlay.open{display:flex}
+.hg-modal{background:var(--drawer-bg);border:1px solid var(--border);border-radius:12px;width:min(720px,96vw);max-height:88vh;overflow-y:auto;padding:24px}
+.hg-modal-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.hg-close{background:none;border:none;color:var(--mid);font-size:22px;cursor:pointer}
+.hygiene-section{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 16px;margin:12px 0}
+.hygiene-section-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;font-weight:700;letter-spacing:.06em;margin-bottom:8px}
+.hygiene-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;font-size:12px;line-height:1.55}
+.hygiene-step-num{background:rgba(99,223,78,.12);color:var(--wasabi);border:1px solid rgba(99,223,78,.3);border-radius:4px;padding:2px 8px;font-family:var(--mono);font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.fcast-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-family:var(--mono);font-size:10px;font-weight:700}
+.fcast-ok{background:rgba(99,223,78,.1);color:var(--wasabi)}
+.fcast-warn{background:rgba(167,139,250,.12);color:#c4b5fd;border:1px solid rgba(167,139,250,.35)}
+.fcast-gap{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.fcast-both{background:rgba(232,57,77,.12);color:var(--red);border:1px solid rgba(232,57,77,.4)}
+.ns-badge{cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;transition:transform .1s,opacity .1s;display:inline-block;margin:1px}
+.ns-badge:hover{transform:scale(1.15);opacity:.85}
+.bc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:16px}
+.bc-overlay.open{display:flex}
+.bc-modal{background:var(--drawer-bg);border:1px solid var(--border);border-radius:12px;width:min(560px,96vw);max-height:85vh;overflow-y:auto;padding:20px}
+.quota-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:400;align-items:center;justify-content:center;padding:20px}
+.quota-overlay.open{display:flex}
+.quota-modal{background:var(--drawer-bg);border:1px solid var(--border);border-radius:14px;width:min(620px,96vw);max-height:90vh;overflow-y:auto}
+.quota-hdr{padding:18px 22px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--dark-teal),var(--inf-blue));display:flex;align-items:center;justify-content:space-between;border-radius:14px 14px 0 0}
+.quota-hdr-title{font-size:16px;font-weight:700;color:var(--wasabi)}
+.quota-hdr-sub{font-size:11px;color:var(--mid);margin-top:3px}
+.quota-body{padding:20px 22px}
+.quota-input{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-weight:700;color:var(--wasabi);font-family:var(--mono);width:100%;text-align:right;transition:border-color .2s}
+.quota-input:focus{outline:none;border-color:var(--wasabi);background:rgba(99,223,78,.05)}
+.quota-coverage{font-size:12px;font-weight:700;font-family:var(--mono);text-align:center;padding:5px 8px;border-radius:6px;min-width:70px}
+.quota-coverage.red{background:rgba(232,57,77,.15);color:var(--red)}
+.quota-coverage.amb{background:rgba(245,166,35,.15);color:var(--amber)}
+.quota-coverage.grn{background:rgba(99,223,78,.12);color:var(--wasabi)}
+.quota-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:rgba(4,67,85,.3);border-radius:0 0 14px 14px}
+.quota-save-btn{padding:9px 24px;background:var(--wasabi);color:var(--inf-blue);font-weight:700;border:none;border-radius:8px;cursor:pointer;font-size:13px;letter-spacing:.3px;transition:opacity .2s}
+.quota-save-btn:hover{opacity:.85}
+.quota-reset-btn{padding:9px 18px;background:transparent;color:var(--mid);font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;transition:all .2s}
+.quota-reset-btn:hover{border-color:var(--amber);color:var(--amber)}
+.quota-gear-btn{background:none;border:1px solid var(--border);color:var(--mid);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.3px;transition:all .2s;display:flex;align-items:center;gap:5px}
+.quota-gear-btn:hover{border-color:var(--wasabi);color:var(--wasabi)}
+.month-group-hdr td{border-bottom:none !important}
+.month-group-hdr:hover td{background:transparent !important}
+.cl-section{margin-top:28px}
+.cl-section .section-title{color:var(--red)}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-title">⚡ ServiceNow Sales Command Centre</div>
+    <div class="hdr-sub" id="hdr-sub">NowSell Coaching Dashboard — Territory Pipeline</div>
+    <div class="hdr-meta" id="hdr-meta">📅 Loading...</div>
+  </div>
+  <div class="hdr-badges">
+    <span class="bdg amb" id="hdr-days">Loading...</span>
+    <span class="bdg grn" id="hdr-won">$0 Net Won CQ</span>
+    <span class="bdg inf" id="hdr-terr">Territory</span>
+    <span class="bdg inf">NowSell</span>
+  </div>
+</div>
+
+<div class="stat-row">
+  <div class="sc" onclick="switchTab('q1')">
+    <div class="sc-lbl" id="sc-lbl-won">CQ Won (Net NNACV)</div>
+    <div class="sc-val a" id="s-won">$0</div>
+    <div class="sc-sub" id="s-won-sub">0 deals · Q not yet started</div>
+  </div>
+  <div class="sc" onclick="switchTab('q1')">
+    <div class="sc-lbl" id="sc-lbl-pipe">CQ Pipeline (Net)</div>
+    <div class="sc-val" id="s-pipe">—</div>
+    <div class="sc-sub" id="s-pipe-sub">— deals · net NNACV</div>
+  </div>
+  <div class="sc" onclick="switchTab('q2')">
+    <div class="sc-lbl" id="sc-lbl-q2">Fwd Q1 Pipeline <span style="color:var(--wasabi);font-size:9px;margin-left:4px">▶ RUN</span></div>
+    <div class="sc-val" id="s-q2">—</div>
+    <div class="sc-sub" id="s-q2-sub">click to run</div>
+  </div>
+  <div class="sc" onclick="switchTab('q3')">
+    <div class="sc-lbl" id="sc-lbl-q3">Fwd Q2 Pipeline <span style="color:var(--wasabi);font-size:9px;margin-left:4px">▶ RUN</span></div>
+    <div class="sc-val" id="s-q3">—</div>
+    <div class="sc-sub" id="s-q3-sub">click to run</div>
+  </div>
+  <div class="sc" onclick="switchTab('q4')">
+    <div class="sc-lbl" id="sc-lbl-q4">Fwd Q3 Pipeline <span style="color:var(--wasabi);font-size:9px;margin-left:4px">▶ RUN</span></div>
+    <div class="sc-val" id="s-q4">—</div>
+    <div class="sc-sub" id="s-q4-sub">click to run</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" id="tab-q1" onclick="switchTab('q1')">CQ Pipeline</div>
+  <div class="tab" id="tab-q2" onclick="switchTab('q2')">Fwd Q1</div>
+  <div class="tab" id="tab-q3" onclick="switchTab('q3')">Fwd Q2</div>
+  <div class="tab" id="tab-q4" onclick="switchTab('q4')">Fwd Q3</div>
+  <div class="tab" id="tab-ae" onclick="switchTab('ae')">AE Stack Rank</div>
+  <div class="tab" id="tab-coach" onclick="switchTab('coach')">Coaching</div>
+  <div class="tab" id="tab-war" onclick="switchTab('war')">War Room 🎙</div>
+</div>
+
+<div id="pane-q1" class="section" style="display:block">
+  <div class="section-title" id="pipe-section-title">CQ Open Pipeline</div>
+  <div class="tbl-wrap" style="margin-bottom:24px">
+    <table id="tbl-pipe">
+      <thead><tr>
+        <th>AE</th><th>Opportunity</th><th>Stage</th><th>Prob%</th>
+        <th>Net NNACV</th><th>Close</th><th>NowSell</th><th>Forecast</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="tbody-pipe"></tbody>
+    </table>
+  </div>
+  <div class="section-title" id="won-section-title">CQ Closed Won</div>
+  <div class="tbl-wrap" style="margin-bottom:24px">
+    <table id="tbl-won">
+      <thead><tr>
+        <th>OPTY #</th><th>Opportunity Name</th><th>Account</th>
+        <th>AE</th><th>Territory</th><th>Net NNACV</th><th>Close Date</th>
+      </tr></thead>
+      <tbody id="tbody-won"></tbody>
+      <tfoot><tr class="won-footer" id="won-footer-row"></tr></tfoot>
+    </table>
+  </div>
+  <div class="cl-section" id="cl-section" style="display:none">
+    <div class="section-title" id="cl-section-title">⚠ Closed Lost Downsells</div>
+    <div class="tbl-wrap">
+      <table id="tbl-cl">
+        <thead><tr>
+          <th>OPTY #</th><th>Opportunity Name</th><th>Account</th>
+          <th>AE</th><th>Territory</th><th>Net NNACV</th><th>Close Date</th>
+        </tr></thead>
+        <tbody id="tbody-cl"></tbody>
+        <tfoot><tr class="won-footer" id="cl-footer-row"></tr></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="pane-q2" class="section" style="display:none">
+  <div id="q2-prompt" class="qtr-prompt">
+    <div class="qtr-prompt-icon">📊</div>
+    <div class="qtr-prompt-title" id="q2-prompt-title">Forward Quarter Pipeline</div>
+    <div class="qtr-prompt-meta" id="q2-prompt-meta">—</div>
+    <div class="qtr-prompt-stats">
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q2-pill-pipe">—</div><div class="qtr-stat-pill-lbl">Pipeline</div></div>
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q2-pill-n">—</div><div class="qtr-stat-pill-lbl">Deals</div></div>
+    </div>
+    <button class="run-btn" id="btn-q2" onclick="runQtrReport('q2')"><span class="spinner"></span><span class="btn-txt">▶ Run Pipeline Report</span></button>
+    <div class="qtr-status" id="status-q2"></div>
+  </div>
+  <div id="q2-results" class="qtr-results" style="display:none"></div>
+</div>
+
+<div id="pane-q3" class="section" style="display:none">
+  <div id="q3-prompt" class="qtr-prompt">
+    <div class="qtr-prompt-icon">📊</div>
+    <div class="qtr-prompt-title" id="q3-prompt-title">Forward Quarter Pipeline</div>
+    <div class="qtr-prompt-meta" id="q3-prompt-meta">—</div>
+    <div class="qtr-prompt-stats">
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q3-pill-pipe">—</div><div class="qtr-stat-pill-lbl">Pipeline</div></div>
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q3-pill-n">—</div><div class="qtr-stat-pill-lbl">Deals</div></div>
+    </div>
+    <button class="run-btn" id="btn-q3" onclick="runQtrReport('q3')"><span class="spinner"></span><span class="btn-txt">▶ Run Pipeline Report</span></button>
+    <div class="qtr-status" id="status-q3"></div>
+  </div>
+  <div id="q3-results" class="qtr-results" style="display:none"></div>
+</div>
+
+<div id="pane-q4" class="section" style="display:none">
+  <div id="q4-prompt" class="qtr-prompt">
+    <div class="qtr-prompt-icon">📊</div>
+    <div class="qtr-prompt-title" id="q4-prompt-title">Forward Quarter Pipeline</div>
+    <div class="qtr-prompt-meta" id="q4-prompt-meta">—</div>
+    <div class="qtr-prompt-stats">
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q4-pill-pipe">—</div><div class="qtr-stat-pill-lbl">Pipeline</div></div>
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q4-pill-n">—</div><div class="qtr-stat-pill-lbl">Deals</div></div>
+    </div>
+    <button class="run-btn" id="btn-q4" onclick="runQtrReport('q4')"><span class="spinner"></span><span class="btn-txt">▶ Run Pipeline Report</span></button>
+    <div class="qtr-status" id="status-q4"></div>
+  </div>
+  <div id="q4-results" class="qtr-results" style="display:none"></div>
+</div>
+
+<div id="pane-ae" class="section" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+    <div class="section-title" id="ae-rank-title" style="margin-bottom:0;padding-bottom:0;border-bottom:none">AE Stack Rank</div>
+    <button class="quota-gear-btn" onclick="openQuotaModal()">⚙️ Quota Settings</button>
+  </div>
+  <div class="ae-grid" id="ae-grid"></div>
+</div>
+
+<div id="pane-coach" class="section" style="display:none">
+  <div class="section-title" id="coach-title">Manager Coaching Actions</div>
+  <div class="coach-grid" id="coach-grid"></div>
+</div>
+
+<div id="pane-war" class="section" style="display:none">
+  <div class="wr-panel">
+    <div class="wr-title" id="wr-title">🎙 War Room Briefing</div>
+    <div class="wr-text" id="wrText">Loading briefing...</div>
+    <div class="wr-controls">
+      <button class="wr-btn play" onclick="playWR()">▶ Play Briefing</button>
+      <button class="wr-btn stop" onclick="stopWR()">■ Stop</button>
+    </div>
+    <div class="wr-status" id="wr-status"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="dealModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div><div class="modal-title" id="modal-title">Deal Details</div><div class="modal-sub" id="modal-sub"></div></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" id="modal-tab-status" onclick="switchModalTab('status')">📊 Status</div>
+      <div class="modal-tab" id="modal-tab-ns" onclick="switchModalTab('ns')">🎯 NowSell</div>
+      <div class="modal-tab" id="modal-tab-coach" onclick="switchModalTab('coach')">👔 Manager</div>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="ae-modal-overlay" id="aeModal">
+  <div class="ae-modal">
+    <div class="ae-modal-hdr">
+      <div class="ae-modal-hdr-left">
+        <div class="ae-modal-avatar" id="ae-modal-avatar">AE</div>
+        <div><div class="ae-modal-title" id="ae-modal-title">AE Name</div><div class="ae-modal-sub" id="ae-modal-sub">Territory</div></div>
+      </div>
+      <button class="ae-modal-close" onclick="closeAEModal()">✕</button>
+    </div>
+    <div class="ae-modal-stats" id="ae-modal-stats"></div>
+    <div class="ae-modal-tabs">
+      <div class="ae-modal-tab active" id="aetab-deals" onclick="switchAETab('deals')">📋 Open Deals</div>
+    </div>
+    <div class="ae-modal-body" id="ae-modal-body"></div>
+  </div>
+</div>
+
+<div class="hg-overlay" id="hg-overlay">
+  <div class="hg-modal">
+    <div class="hg-modal-hdr">
+      <div style="font-size:13px;font-weight:700;color:var(--wasabi)">⚡ Forecast Hygiene Coach</div>
+      <button class="hg-close" onclick="closeHygieneModal()">✕</button>
+    </div>
+    <div id="hg-body"></div>
+  </div>
+</div>
+
+<div class="bc-overlay" id="bcOverlay" onclick="if(event.target===this)closeBadgeCoach()">
+  <div class="bc-modal"><div id="bcBody"></div></div>
+</div>
+
+<div class="quota-overlay" id="quotaOverlay" onclick="if(event.target===this)closeQuotaModal()">
+  <div class="quota-modal">
+    <div class="quota-hdr">
+      <div>
+        <div class="quota-hdr-title">⚙️ Quota Settings</div>
+        <div class="quota-hdr-sub" id="quota-hdr-sub">Set AE quotas to update coverage calculations</div>
+      </div>
+      <button style="background:none;border:none;color:var(--mid);font-size:22px;cursor:pointer;padding:0 4px" onclick="closeQuotaModal()">✕</button>
+    </div>
+    <div class="quota-body" id="quota-body"></div>
+    <div class="quota-footer">
+      <button class="quota-reset-btn" onclick="resetQuotas()">↺ Reset to defaults</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;color:var(--mid)" id="quota-saved-msg"></span>
+        <button class="quota-save-btn" onclick="saveQuotas()">Save & Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA SWAP ZONE — Q2 FY2026 | ANZ FSI
+// Generated: 2026-03-27 | ServiceNow Sales Command Centre v1.0
+// ============================================================
+
+var PIPE_Q1 = [
+  {num:"OPTY2549840",account:"National Australia Bank Ltd",name:"National Australia Bank Ltd Renewal starting June-2027",ae:"Graham Rothwell",terr:"ANZ FSI - STRATEGIC",nnacv:5733542,stage:"3 - Objectives (10%)",closeDate:"2026-06-25",prob:10,dtc:90,flags:[],nowsell:{"DIS": "a", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [0, 20]},riskScore:"R"},
+  {num:"OPTY5307716",account:"Resolution Life Services Australia Pty Ltd",name:"Acenda - SF Replacement",ae:"Maneesh Gupta",terr:"ANZ FSI - ENTERPRISE",nnacv:1661052,stage:"5 - Economic Buyer Validation (40%)",closeDate:"2026-06-09",prob:40,dtc:74,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "a", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [30, 50]},riskScore:"A"},
+  {num:"OPTY5275439",account:"HBF Health Ltd",name:"HBF Cherwell replacement",ae:"Maneesh Gupta",terr:"ANZ FSI - ENTERPRISE",nnacv:388088,stage:"5 - Economic Buyer Validation (40%)",closeDate:"2026-05-08",prob:40,dtc:42,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "a", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [30, 50]},riskScore:"A"},
+  {num:"OPTY5273122",account:"HBF Health Ltd",name:"HBF",ae:"Maneesh Gupta",terr:"ANZ FSI - ENTERPRISE",nnacv:292138,stage:"3 - Objectives (10%)",closeDate:"2026-06-10",prob:10,dtc:75,flags:[],nowsell:{"DIS": "a", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [0, 20]},riskScore:"R"},
+  {num:"OPTY5260796",account:"National Australia Bank Ltd",name:"SSE - UVM Vuln Uplift",ae:"Graham Rothwell",terr:"ANZ FSI - STRATEGIC",nnacv:282379,stage:"4 - Present Solution (20%)",closeDate:"2026-04-17",prob:20,dtc:21,flags:[],nowsell:{"DIS": "g", "TV": "a", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [10, 30]},riskScore:"A"},
+  {num:"OPTY5067964",account:"Computershare Technology Services Pty Ltd",name:"AE - Computershare - Operational Risk",ae:"Amelia Horne",terr:"ANZ FSI - ENTERPRISE",nnacv:278850,stage:"6 - Validation Completed (70%)",closeDate:"2026-06-19",prob:70,dtc:84,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "a", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [60, 80]},riskScore:"G"},
+  {num:"OPTY5224737",account:"Suncorp Corporate Services Pty Ltd",name:"ESA Suncorp - RFP - Home and Car Insurance Assessor",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:272413,stage:"4 - Present Solution (20%)",closeDate:"2026-04-23",prob:20,dtc:27,flags:[],nowsell:{"DIS": "g", "TV": "a", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [10, 30]},riskScore:"A"},
+  {num:"OPTY6537948",account:"Suncorp Corporate Services Pty Ltd",name:"AE/ESA Suncorp Entitlements linked to Main Renewal OPTY1965323",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:222274,stage:"7 - Deal Imminent (90%)",closeDate:"2026-04-01",prob:90,dtc:5,flags:["CLOSE_RED"],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "g", "LPO": "a"},forecastCheck:{"score": "warn", "allOk": false, "probRange": [80, 100]},riskScore:"G"},
+  {num:"OPTY5292842",account:"Commonwealth Bank Of Australia",name:"CBA - TPRM Pro Plus (Supplier Onboarding)",ae:"Varun Verma",terr:"ANZ FSI - STRATEGIC",nnacv:210954,stage:"4 - Economic Buyer Identified (30%)",closeDate:"2026-06-19",prob:30,dtc:84,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "a", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [20, 40]},riskScore:"A"},
+  {num:"OPTY5222389",account:"Commonwealth Bank Of Australia",name:"CBA - Enterprise Architecture",ae:"Varun Verma",terr:"ANZ FSI - STRATEGIC",nnacv:146173,stage:"4 - Economic Buyer Identified (30%)",closeDate:"2026-06-18",prob:30,dtc:83,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "a", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [20, 40]},riskScore:"A"},
+  {num:"OPTY5324830",account:"Australian Financial Complaints Authority Ltd",name:"CWF Prime - AFCA - Scam management",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:132884,stage:"2 - Discovery (5%)",closeDate:"2026-06-25",prob:5,dtc:90,flags:["UNASSIGNED"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5265292",account:"McMillan Shakespeare Ltd",name:"AE/ESA - Workflow Data Fabric - MMSG",ae:"Simon Kobakian",terr:"ANZ FSI - ENTERPRISE",nnacv:132651,stage:"6 - Validation Completed (70%)",closeDate:"2026-06-15",prob:70,dtc:80,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "a", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [60, 80]},riskScore:"G"},
+  {num:"OPTY2015804",account:"RACQ Operations Pty Ltd",name:"ESA/RAM - RACQ - Renewal Due 30/06/26",ae:"Bridget Davidson",terr:"ANZ FSI - ENTERPRISE",nnacv:106598,stage:"5 - Economic Buyer Validation (40%)",closeDate:"2026-06-30",prob:40,dtc:95,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "a", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [30, 50]},riskScore:"A"},
+  {num:"OPTY1769755",account:"National Australia Bank Ltd",name:"NAB - Procurement Ops Expansion",ae:"Graham Rothwell",terr:"ANZ FSI - STRATEGIC",nnacv:105268,stage:"3 - Objectives (10%)",closeDate:"2026-05-20",prob:10,dtc:54,flags:[],nowsell:{"DIS": "a", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [0, 20]},riskScore:"R"},
+  {num:"OPTY5296103",account:"Bupa Hi Pty Ltd",name:"Bupa - True up on SIR and VR Uplift",ae:"Amelia Horne",terr:"ANZ FSI - ENTERPRISE",nnacv:101280,stage:"6 - Validation Completed (70%)",closeDate:"2026-04-24",prob:70,dtc:28,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "a", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [60, 80]},riskScore:"G"},
+  {num:"OPTY5297268",account:"Medical Indemnity Protection Society Ltd",name:"MM (RFP NL) - MIPS - CRM",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:99663,stage:"2 - Discovery (5%)",closeDate:"2026-06-26",prob:5,dtc:91,flags:["UNASSIGNED"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5226499",account:"Royal Automobile Association Of South Australia Inc",name:"ESA/AE/SC: RAA - SAM/HAM Pro",ae:"Bridget Davidson",terr:"ANZ FSI - ENTERPRISE",nnacv:98693,stage:"5 - Economic Buyer Validation (40%)",closeDate:"2026-05-22",prob:40,dtc:56,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "a", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [30, 50]},riskScore:"A"},
+  {num:"OPTY5266585",account:"Homehub Limited",name:"Home Hub - CRM - Supplier Onboarding and Servicing Portal",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:83931,stage:"4 - Present Solution (20%)",closeDate:"2026-06-05",prob:20,dtc:70,flags:[],nowsell:{"DIS": "g", "TV": "a", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [10, 30]},riskScore:"A"},
+  {num:"OPTY5307661",account:"The Hollard Insurance Company Pty Ltd",name:"ESA - Hollard - TPRM upsell (ESG Questionnaire)",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:79986,stage:"5 - Economic Buyer Validation (40%)",closeDate:"2026-06-30",prob:40,dtc:95,flags:["UNASSIGNED"],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "a", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [30, 50]},riskScore:"A"},
+  {num:"OPTY5311565",account:"Suncorp Corporate Services Pty Ltd",name:"ESA Suncorp RFP LSD",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:78402,stage:"4 - Present Solution (20%)",closeDate:"2026-06-10",prob:20,dtc:75,flags:[],nowsell:{"DIS": "g", "TV": "a", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [10, 30]},riskScore:"A"},
+  {num:"OPTY4328628",account:"National Australia Bank Ltd",name:"National Australia Bank Ltd Renewal starting June-2026",ae:"Graham Rothwell",terr:"ANZ FSI - STRATEGIC",nnacv:76634,stage:"3 - Objectives (10%)",closeDate:"2026-06-25",prob:10,dtc:90,flags:[],nowsell:{"DIS": "a", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [0, 20]},riskScore:"R"},
+  {num:"OPTY5305886",account:"Australian Payments Plus Ltd",name:"AP+ NPP Pilot - AEE",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:65778,stage:"3 - Objectives (10%)",closeDate:"2026-06-10",prob:10,dtc:75,flags:[],nowsell:{"DIS": "a", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [0, 20]},riskScore:"R"},
+  {num:"OPTY5295463",account:"The ItsMy Group Pty Ltd",name:"MM (NL) - IMG - ESM (ITSM/TPSM/ITOM)",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:63974,stage:"2 - Discovery (5%)",closeDate:"2026-05-29",prob:5,dtc:63,flags:["UNASSIGNED"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY6754570",account:"Bupa Hi Pty Ltd",name:"Bupa ITSM Uplift",ae:"Amelia Horne",terr:"ANZ FSI - ENTERPRISE",nnacv:60000,stage:"6 - Validation Completed (70%)",closeDate:"2026-04-24",prob:70,dtc:28,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "a", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [60, 80]},riskScore:"G"},
+  {num:"OPTY5306532",account:"Royal Automobile Association Of South Australia Inc",name:"AE/ESA-RAA-CONTRACT MGT + S2P",ae:"Bridget Davidson",terr:"ANZ FSI - ENTERPRISE",nnacv:59838,stage:"4 - Present Solution (20%)",closeDate:"2026-06-17",prob:20,dtc:82,flags:[],nowsell:{"DIS": "g", "TV": "a", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [10, 30]},riskScore:"A"},
+  {num:"OPTY5303779",account:"Generation Life Ltd",name:"RFP: MM (NL) - GenLife - TPRM/IRM",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:57887,stage:"3 - Objectives (10%)",closeDate:"2026-06-11",prob:10,dtc:76,flags:["UNASSIGNED"],nowsell:{"DIS": "a", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [0, 20]},riskScore:"R"},
+  {num:"OPTY1967602",account:"AustralianSuper Pty Ltd",name:"AustralianSuper Pty Ltd Renewal starting July-2026",ae:"Simon Kobakian",terr:"ANZ FSI - ENTERPRISE",nnacv:48845,stage:"4 - Economic Buyer Identified (30%)",closeDate:"2026-06-30",prob:30,dtc:95,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "a", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [20, 40]},riskScore:"A"},
+  {num:"OPTY5316991",account:"Bupa Hi Pty Ltd",name:"Bupa Now Assist for ITSM",ae:"Amelia Horne",terr:"ANZ FSI - ENTERPRISE",nnacv:46310,stage:"5 - Economic Buyer Validation (40%)",closeDate:"2026-06-12",prob:40,dtc:77,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "a", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [30, 50]},riskScore:"A"},
+  {num:"OPTY5299424",account:"National Australia Bank Ltd",name:"ClaimsView from store",ae:"Graham Rothwell",terr:"ANZ FSI - STRATEGIC",nnacv:45477,stage:"2 - Discovery (5%)",closeDate:"2026-04-29",prob:5,dtc:33,flags:[],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5243087",account:"IAG New Zealand Ltd",name:"IAG NZ - CSM FSM SOM",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:45000,stage:"2 - Discovery (5%)",closeDate:"2026-06-05",prob:5,dtc:70,flags:[],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5242442",account:"First Sentier Investors Holdings Pty Ltd",name:"First Sentier Investors ITSM Deal",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:45000,stage:"2 - Discovery (5%)",closeDate:"2026-05-14",prob:5,dtc:48,flags:["UNASSIGNED"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5273465",account:"Australian Financial Complaints Authority Ltd",name:"Financial Disputes A",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:45000,stage:"2 - Discovery (5%)",closeDate:"2026-05-15",prob:5,dtc:49,flags:["UNASSIGNED"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5273470",account:"Australian Financial Complaints Authority Ltd",name:"Financial Disputes B",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:45000,stage:"2 - Discovery (5%)",closeDate:"2026-05-15",prob:5,dtc:49,flags:["UNASSIGNED"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5304059",account:"Commonwealth Bank Of Australia",name:"NowAssist and FSO - Confidential",ae:"Varun Verma",terr:"ANZ FSI - STRATEGIC",nnacv:45000,stage:"2 - Discovery (5%)",closeDate:"2026-05-20",prob:5,dtc:54,flags:[],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5309847",account:"Gallagher Bassett Services Pty Ltd",name:"Gallagher Bassett Services - Genesys",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:45000,stage:"2 - Discovery (5%)",closeDate:"2026-06-20",prob:5,dtc:85,flags:["UNASSIGNED"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5242431",account:"First Sentier Investors Holdings Pty Ltd",name:"First Sentier Investors ITOM Deal",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:45000,stage:"2 - Discovery (5%)",closeDate:"2026-05-14",prob:5,dtc:48,flags:["UNASSIGNED"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5309818",account:"europ Assistance Australia Pty Ltd",name:"Genesys - Europ Assistance Australia",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:45000,stage:"2 - Discovery (5%)",closeDate:"2026-06-20",prob:5,dtc:85,flags:["UNASSIGNED"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5308230",account:"Guild Insurance Ltd",name:"Genesys - Guild Insurance",ae:"Unassigned",terr:"ANZ FSI - ENTERPRISE",nnacv:45000,stage:"2 - Discovery (5%)",closeDate:"2026-06-12",prob:5,dtc:77,flags:["UNASSIGNED"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY5162261",account:"GMHBA Ltd",name:"AE - GMHBA - IRM Upsell to Enterprise",ae:"Amelia Horne",terr:"ANZ FSI - ENTERPRISE",nnacv:38869,stage:"5 - Economic Buyer Validation (40%)",closeDate:"2026-06-12",prob:40,dtc:77,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "a", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [30, 50]},riskScore:"A"},
+  {num:"OPTY5307689",account:"AustralianSuper Pty Ltd",name:"AE/ESA - HRSD Std (NED onboarding) - AusSuper",ae:"Simon Kobakian",terr:"ANZ FSI - ENTERPRISE",nnacv:24079,stage:"4 - Economic Buyer Identified (30%)",closeDate:"2026-06-30",prob:30,dtc:95,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "a", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [20, 40]},riskScore:"A"},
+  {num:"OPTY6161471",account:"Commonwealth Bank Of Australia",name:"SSE - CBA - Health and Safety Built in Upsell",ae:"Varun Verma",terr:"ANZ FSI - STRATEGIC",nnacv:20996,stage:"7 - Deal Imminent (90%)",closeDate:"2026-04-01",prob:90,dtc:5,flags:["CLOSE_RED"],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "g", "LPO": "a"},forecastCheck:{"score": "warn", "allOk": false, "probRange": [80, 100]},riskScore:"G"},
+  {num:"OPTY5283902",account:"IAG NZ Repairhub Ltd",name:"ESA Repair Hub Source to Pay",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:20259,stage:"3 - Objectives (10%)",closeDate:"2026-06-05",prob:10,dtc:70,flags:[],nowsell:{"DIS": "a", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [0, 20]},riskScore:"R"},
+  {num:"OPTY5326163",account:"TAL Services Ltd",name:"TAL ITSM Pro Plus",ae:"Maneesh Gupta",terr:"ANZ FSI - ENTERPRISE",nnacv:19749,stage:"5 - Economic Buyer Validation (40%)",closeDate:"2026-05-20",prob:40,dtc:54,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "a", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [30, 50]},riskScore:"A"},
+  {num:"OPTY5292869",account:"Peoples Choice Credit Union",name:"AE/SC/ESA - PFB - ITOM Discovery",ae:"Bridget Davidson",terr:"ANZ FSI - ENTERPRISE",nnacv:17732,stage:"5 - Economic Buyer Validation (40%)",closeDate:"2026-06-22",prob:40,dtc:87,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "a", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [30, 50]},riskScore:"A"},
+  {num:"OPTY5210872",account:"TAL Services Ltd",name:"ESA TAL - Legal / Complaints",ae:"Maneesh Gupta",terr:"ANZ FSI - ENTERPRISE",nnacv:15361,stage:"5 - Economic Buyer Validation (40%)",closeDate:"2026-05-28",prob:40,dtc:62,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "a", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [30, 50]},riskScore:"A"},
+  {num:"OPTY5283905",account:"First Rescue New Zealand Ltd",name:"First Rescue NZ Source to Pay",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:14471,stage:"3 - Objectives (10%)",closeDate:"2026-06-05",prob:10,dtc:70,flags:[],nowsell:{"DIS": "a", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [0, 20]},riskScore:"R"},
+  {num:"OPTY2988052",account:"AMP Services (NZ) Limited",name:"AMP Financial NZ Renewal starting June-2026",ae:"Maneesh Gupta",terr:"ANZ FSI - ENTERPRISE",nnacv:7700,stage:"6 - Validation Completed (70%)",closeDate:"2026-04-10",prob:70,dtc:14,flags:["CLOSE_AMBER"],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "a", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [60, 80]},riskScore:"G"},
+  {num:"OPTY4327336",account:"Mobilise IT Pty Ltd",name:"ESA - Mobilise IT - Samsung ZTM and HAM",ae:"Amelia Horne",terr:"ANZ FSI - ENTERPRISE",nnacv:1800,stage:"6 - Validation Completed (70%)",closeDate:"2026-04-24",prob:70,dtc:28,flags:[],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "a", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [60, 80]},riskScore:"G"},
+  {num:"OPTY4375226",account:"Australia and New Zealand Banking Group Ltd",name:"ANZ Bank App Store Renewal 2026-07-01",ae:"Rod Hathway",terr:"ANZ FSI - STRATEGIC",nnacv:0,stage:"2 - Discovery (5%)",closeDate:"2026-06-30",prob:5,dtc:95,flags:[],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY4408449",account:"Australian Payments Plus Ltd",name:"Australian Payments Plus Ltd Renewal starting July-2026",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:0,stage:"4 - Present Solution (20%)",closeDate:"2026-06-30",prob:20,dtc:95,flags:[],nowsell:{"DIS": "g", "TV": "a", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [10, 30]},riskScore:"A"},
+  {num:"OPTY4447248",account:"Westpac Banking Corporation",name:"Infosys - Westpac Renewal starting July-2026",ae:"Kevin Pecqueux",terr:"ANZ FSI - STRATEGIC",nnacv:0,stage:"2 - Discovery (5%)",closeDate:"2026-06-30",prob:5,dtc:95,flags:[],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY6360071",account:"National Australia Bank Ltd",name:"National Australia Bank Ltd Renewal starting June-2026 B",ae:"Graham Rothwell",terr:"ANZ FSI - STRATEGIC",nnacv:0,stage:"2 - Discovery (5%)",closeDate:"2026-06-25",prob:5,dtc:90,flags:[],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY4256403",account:"Commonwealth Bank Of Australia",name:"Deloitte Australia - CBA OEM Renewal 2026-06-14",ae:"Varun Verma",terr:"ANZ FSI - STRATEGIC",nnacv:0,stage:"2 - Discovery (5%)",closeDate:"2026-06-13",prob:5,dtc:78,flags:[],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY6604326",account:"IAG NZ Repairhub Ltd",name:"IAG NZ Repairhub Ltd Renewal starting April-2026",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:0,stage:"2 - Discovery (5%)",closeDate:"2026-04-20",prob:5,dtc:24,flags:[],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY6763052",account:"The Hospitals Contribution Fund of Australia Ltd",name:"HCF Renewal starting June-2026",ae:"Maneesh Gupta",terr:"ANZ FSI - ENTERPRISE",nnacv:0,stage:"2 - Discovery (5%)",closeDate:"2026-06-29",prob:5,dtc:94,flags:[],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY6537945",account:"Suncorp Corporate Services Pty Ltd",name:"Suncorp Entitlements Built in Upsell May-2026",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:-15787,stage:"7 - Deal Imminent (90%)",closeDate:"2026-04-01",prob:90,dtc:5,flags:["DOWNSELL", "CLOSE_RED"],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "g", "LPO": "a"},forecastCheck:{"score": "warn", "allOk": false, "probRange": [80, 100]},riskScore:"R"},
+  {num:"OPTY4352128",account:"ASX Operations Pty Ltd",name:"ASX Operations Pty Ltd Renewal starting June-2026",ae:"Maneesh Gupta",terr:"ANZ FSI - ENTERPRISE",nnacv:-16440,stage:"2 - Discovery (5%)",closeDate:"2026-06-29",prob:5,dtc:94,flags:["DOWNSELL"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY4401554",account:"Auto and General Claims",name:"A and G - FSO contract Built in Upsell July-2026",ae:"Bridget Davidson",terr:"ANZ FSI - ENTERPRISE",nnacv:-24535,stage:"7 - Deal Imminent (90%)",closeDate:"2026-04-01",prob:90,dtc:5,flags:["DOWNSELL", "CLOSE_RED"],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "g", "LPO": "a"},forecastCheck:{"score": "warn", "allOk": false, "probRange": [80, 100]},riskScore:"R"},
+  {num:"OPTY6537949",account:"Suncorp Corporate Services Pty Ltd",name:"Suncorp Entitlements Built in Upsell July-2026",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:-30727,stage:"7 - Deal Imminent (90%)",closeDate:"2026-04-01",prob:90,dtc:5,flags:["DOWNSELL", "CLOSE_RED"],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "g", "LPO": "a"},forecastCheck:{"score": "warn", "allOk": false, "probRange": [80, 100]},riskScore:"R"},
+  {num:"OPTY1964905",account:"RACQ Operations Pty Ltd",name:"RACQ IntegrationHub Renewal Due 30/06/26",ae:"Bridget Davidson",terr:"ANZ FSI - ENTERPRISE",nnacv:-55760,stage:"5 - Economic Buyer Validation (40%)",closeDate:"2026-06-30",prob:40,dtc:95,flags:["DOWNSELL"],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "a", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [30, 50]},riskScore:"R"},
+  {num:"OPTY6662043",account:"Suncorp Corporate Services Pty Ltd",name:"Suncorp Corporate Services Renewal June-2026",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:-78933,stage:"2 - Discovery (5%)",closeDate:"2026-06-29",prob:5,dtc:94,flags:["DOWNSELL"],nowsell:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [-5, 15]},riskScore:"R"},
+  {num:"OPTY6661769",account:"Suncorp Corporate Services Pty Ltd",name:"Suncorp Corporate Services Renewal July-2026",ae:"Zak Mann",terr:"ANZ FSI - ENTERPRISE",nnacv:-219478,stage:"6 - Validation Completed (70%)",closeDate:"2026-06-30",prob:70,dtc:95,flags:["DOWNSELL"],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "a", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [60, 80]},riskScore:"R"},
+  {num:"OPTY4248499",account:"ASX Operations Pty Ltd",name:"ASX - Lightstep Renewal Jun26",ae:"Maneesh Gupta",terr:"ANZ FSI - ENTERPRISE",nnacv:-231777,stage:"6 - Validation Completed (70%)",closeDate:"2026-06-12",prob:70,dtc:77,flags:["DOWNSELL"],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "a", "LPO": "r"},forecastCheck:{"score": "gap", "allOk": false, "probRange": [60, 80]},riskScore:"R"},
+  {num:"OPTY4380177",account:"Commonwealth Bank Of Australia",name:"CBA Renewal starting July-25 Built in Upsell July-2026",ae:"Varun Verma",terr:"ANZ FSI - STRATEGIC",nnacv:-264227,stage:"7 - Deal Imminent (90%)",closeDate:"2026-04-01",prob:90,dtc:5,flags:["DOWNSELL", "CLOSE_RED"],nowsell:{"DIS": "g", "TV": "g", "BC": "g", "MP": "g", "COM": "g", "LPO": "a"},forecastCheck:{"score": "warn", "allOk": false, "probRange": [80, 100]},riskScore:"R"},
+];
+
+var WON_CQ = [];
+var CLOSED_LOST = [];
+
+var AE_DATA = [
+  {n:"Graham Rothwell",init:"GR",rank:1,terr:"ANZ FSI - STRATEGIC",dist:"STR",won:0,pipe:6243300,wtd:936495,deals:6,risk:"G",coverage:7.8,covColor:"GREEN",pacingPct:0,paceColor:"RED",nsGap:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},gap:"DIS TV BC MP COM LPO",lever:"Coverage 7.8x. Stage progression priority.",actions:["NAB Renewal (OPTY2549840) \u2014 advance DIS and TV to green, book EB intro this week", "NAB UVM Vuln Uplift (OPTY5260796) \u2014 closes Apr-17, TV must complete before Apr 10", "NAB Procurement Ops ($105K) \u2014 Stage 3, push to Stage 4 with objectives doc"],coachNarrative:"Graham holds the territory anchor — NAB Renewal June-2027 ($5.73M) at Stage 3 is over half the Q2 pipeline. Priority: accelerate stage to 4 and lock Economic Buyer before April 30. Secondary: SSE UVM Vuln Uplift ($282K) closes April 17 — get to Stage 5 this week.",coachContext:"NAB is ANZ FSIs largest account. Multiple NAB rows in pipeline — coordinate to prevent overlap.",covReason:"Graham Rothwell has $6.2M pipeline against $800K quota. Coverage: 7.8x.",paceReason:"Q2 starts April 1. No QTD won yet — quarter has not opened.",riskReason:"Overall RAG: G. Coverage 7.8x, Q2 not yet started.",covActions:["Review pipeline coverage and add deals to reach 2x minimum","Coach AE on outbound prospecting and account expansion"],paceActions:["Q2 opens April 1 - identify earliest closeable deals","Align deal stages to NowSell milestone requirements"],riskActions:["Immediate 1:1 coaching session required","Review all deals for stage accuracy in Dynamics"],bigDeal:"National Australia Bank Ltd",bigDealNNACV:5733542,singleAccount:false},
+  {n:"Maneesh Gupta",init:"MG",rank:2,terr:"ANZ FSI - ENTERPRISE",dist:"ENT",won:0,pipe:2135871,wtd:320381,deals:9,risk:"G",coverage:2.7,covColor:"AMBER",pacingPct:0,paceColor:"RED",nsGap:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},gap:"DIS TV BC MP COM LPO",lever:"Coverage 2.7x. Stage progression priority.",actions:["Resolution Life (OPTY5307716) \u2014 $1.66M at Stage 5, advance BC and MP to green this sprint", "ASX Lightstep (OPTY4248499) \u2014 -$232K downsell at Stage 6, escalate mitigation plan urgently", "HBF Cherwell (OPTY5275439) \u2014 $388K at Stage 5, confirm EB is engaged and BC is presented"],coachNarrative:"Maneesh holds the territories most significant new logo — Resolution Life Acenda SF Replacement ($1.66M) at Stage 5. Technical Validation and Business Case must complete before May. ASX Lightstep downsell (-$232K at Stage 6) is a critical risk requiring executive mitigation.",coachContext:"Resolution Life is a competitive SF displacement deal. HBF has two active deals — coordinate.",covReason:"Maneesh Gupta has $2.1M pipeline against $800K quota. Coverage: 2.7x.",paceReason:"Q2 starts April 1. No QTD won yet — quarter has not opened.",riskReason:"Overall RAG: G. Coverage 2.7x, Q2 not yet started.",covActions:["Review pipeline coverage and add deals to reach 2x minimum","Coach AE on outbound prospecting and account expansion"],paceActions:["Q2 opens April 1 - identify earliest closeable deals","Align deal stages to NowSell milestone requirements"],riskActions:["Immediate 1:1 coaching session required","Review all deals for stage accuracy in Dynamics"],bigDeal:"The Hospitals Contribution Fund of Australia Ltd",bigDealNNACV:1661052,singleAccount:false},
+  {n:"Amelia Horne",init:"AH",rank:3,terr:"ANZ FSI - ENTERPRISE",dist:"ENT",won:0,pipe:527109,wtd:79066,deals:6,risk:"A",coverage:0.7,covColor:"RED",pacingPct:0,paceColor:"RED",nsGap:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},gap:"DIS TV BC MP COM LPO",lever:"Coverage 0.7x. Pipeline add required.",actions:["Computershare Op Risk (OPTY5067964) \u2014 $279K at Stage 6, COM and LPO must go green now", "Bupa True-Up (OPTY5296103) \u2014 $101K at Stage 6, confirm EB and submit Order Form to SURF", "Bupa ITSM Uplift (OPTY6754570) \u2014 $60K at Stage 6, close by Apr-24 \u2014 final push this week"],coachNarrative:"Amelia has the territories strongest late-stage cluster — three deals at Stage 6 totalling $440K: Computershare Operational Risk ($279K), Bupa True-Up ($101K), and Bupa ITSM Uplift ($60K). All close in April. Priority: advance each to Stage 7 and get Order Forms into SURF this week.",coachContext:"Three Stage 6 deals closing in April — highest conversion probability in the territory.",covReason:"Amelia Horne has $527K pipeline against $800K quota. Coverage: 0.7x.",paceReason:"Q2 starts April 1. No QTD won yet — quarter has not opened.",riskReason:"Overall RAG: A. Coverage 0.7x, Q2 not yet started.",covActions:["Review pipeline coverage and add deals to reach 2x minimum","Coach AE on outbound prospecting and account expansion"],paceActions:["Q2 opens April 1 - identify earliest closeable deals","Align deal stages to NowSell milestone requirements"],riskActions:["Immediate 1:1 coaching session required","Review all deals for stage accuracy in Dynamics"],bigDeal:"Mobilise IT Pty Ltd",bigDealNNACV:278850,singleAccount:false},
+  {n:"Zak Mann",init:"ZM",rank:4,terr:"ANZ FSI - ENTERPRISE",dist:"ENT",won:0,pipe:457603,wtd:68640,deals:14,risk:"A",coverage:0.6,covColor:"RED",pacingPct:0,paceColor:"RED",nsGap:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},gap:"DIS TV BC MP COM LPO",lever:"Coverage 0.6x. Pipeline add required.",actions:["Suncorp RFP Home/Car (OPTY5224737) \u2014 $272K closes Apr-23, advance BC and TV urgently", "Suncorp downsells (OPTY6661769 -$219K, OPTY6662043 -$79K) \u2014 present mitigation plan", "AP+ NPP Pilot (OPTY5305886) \u2014 $66K at Stage 3, push to Stage 4 with objectives this week"],coachNarrative:"Zak carries the most complex net NNACV picture in the territory. Three Suncorp downsell rows total -$325K while one entitlement is +$222K. Net Suncorp exposure is -$103K. The Suncorp RFP ($272K at Stage 4) is the priority positive deal — get to Stage 5 before April 30.",coachContext:"Suncorp has both positive and negative NNACV rows — Zak must present a clean net picture to management.",covReason:"Zak Mann has $458K pipeline against $800K quota. Coverage: 0.6x.",paceReason:"Q2 starts April 1. No QTD won yet — quarter has not opened.",riskReason:"Overall RAG: A. Coverage 0.6x, Q2 not yet started.",covActions:["Review pipeline coverage and add deals to reach 2x minimum","Coach AE on outbound prospecting and account expansion"],paceActions:["Q2 opens April 1 - identify earliest closeable deals","Align deal stages to NowSell milestone requirements"],riskActions:["Immediate 1:1 coaching session required","Review all deals for stage accuracy in Dynamics"],bigDeal:"Suncorp Corporate Services Pty Ltd",bigDealNNACV:272413,singleAccount:false},
+  {n:"Simon Kobakian",init:"SK",rank:5,terr:"ANZ FSI - ENTERPRISE",dist:"ENT",won:0,pipe:205575,wtd:30836,deals:3,risk:"A",coverage:0.3,covColor:"RED",pacingPct:0,paceColor:"RED",nsGap:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},gap:"DIS TV BC MP COM LPO",lever:"Coverage 0.3x. Pipeline add required.",actions:["McMillan Shakespeare (OPTY5265292) \u2014 $133K at Stage 6, progress LPO and COM to green", "AustralianSuper Renewal (OPTY1967602) \u2014 $49K at Stage 4, confirm EB and advance BC", "AusSuper HRSD (OPTY5307689) \u2014 $24K at Stage 4, coordinate with renewal to package"],coachNarrative:"Simon has two key deals: McMillan Shakespeare Workflow Data Fabric ($133K) at Stage 6 and AustralianSuper renewal ($49K) at Stage 4. MMSG is close to commit — drive to Stage 7 and get Order Form into SURF. AusSuper needs EB engagement to advance.",coachContext:"McMillan Shakespeare is at 70% — highest conviction deal in Simons portfolio.",covReason:"Simon Kobakian has $206K pipeline against $800K quota. Coverage: 0.3x.",paceReason:"Q2 starts April 1. No QTD won yet — quarter has not opened.",riskReason:"Overall RAG: A. Coverage 0.3x, Q2 not yet started.",covActions:["Review pipeline coverage and add deals to reach 2x minimum","Coach AE on outbound prospecting and account expansion"],paceActions:["Q2 opens April 1 - identify earliest closeable deals","Align deal stages to NowSell milestone requirements"],riskActions:["Immediate 1:1 coaching session required","Review all deals for stage accuracy in Dynamics"],bigDeal:"McMillan Shakespeare Ltd",bigDealNNACV:132651,singleAccount:false},
+  {n:"Bridget Davidson",init:"BD",rank:6,terr:"ANZ FSI - ENTERPRISE",dist:"ENT",won:0,pipe:202566,wtd:30385,deals:6,risk:"A",coverage:0.3,covColor:"RED",pacingPct:0,paceColor:"RED",nsGap:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},gap:"DIS TV BC MP COM LPO",lever:"Coverage 0.3x. Pipeline add required.",actions:["RACQ IntegrationHub (OPTY1964905) \u2014 -$56K downsell, develop expansion play to offset", "RAA SAM/HAM Pro (OPTY5226499) \u2014 $99K at Stage 5, advance BC and lock EB commitment", "Peoples Choice ITOM (OPTY5292869) \u2014 $18K at Stage 5, progress to Stage 6 this sprint"],coachNarrative:"Bridget has a complex RACQ picture — renewal ($107K) and IntegrationHub downsell (-$56K) both close June 30. Net RACQ position is +$51K. A and G downsell (-$25K) closes April 1. RAA SAM/HAM Pro ($99K at Stage 5) is the next priority positive deal.",coachContext:"RACQ net NNACV must be protected. Peoples Choice ITOM discovery needs acceleration.",covReason:"Bridget Davidson has $203K pipeline against $800K quota. Coverage: 0.3x.",paceReason:"Q2 starts April 1. No QTD won yet — quarter has not opened.",riskReason:"Overall RAG: A. Coverage 0.3x, Q2 not yet started.",covActions:["Review pipeline coverage and add deals to reach 2x minimum","Coach AE on outbound prospecting and account expansion"],paceActions:["Q2 opens April 1 - identify earliest closeable deals","Align deal stages to NowSell milestone requirements"],riskActions:["Immediate 1:1 coaching session required","Review all deals for stage accuracy in Dynamics"],bigDeal:"Royal Automobile Association Of South Australia Inc",bigDealNNACV:106598,singleAccount:false},
+  {n:"Varun Verma",init:"VV",rank:7,terr:"ANZ FSI - STRATEGIC",dist:"STR",won:0,pipe:158896,wtd:23834,deals:6,risk:"A",coverage:0.2,covColor:"RED",pacingPct:0,paceColor:"RED",nsGap:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},gap:"DIS TV BC MP COM LPO",lever:"Coverage 0.2x. Pipeline add required.",actions:["CBA Built-in Upsell (OPTY4380177) \u2014 -$264K closes Apr-01, escalate to exec team today", "CBA TPRM Pro Plus (OPTY5292842) \u2014 $211K at Stage 4, advance to EB Validation this sprint", "CBA Enterprise Architecture (OPTY5222389) \u2014 $146K, confirm EB and push to Stage 5"],coachNarrative:"Varun has solid CBA coverage but carries the territories largest single downsell — CBA Renewal Built-in Upsell (-$264K) at Stage 7 closes April 1. Immediate executive alignment required. TPRM Pro Plus ($211K) and Enterprise Architecture ($146K) are progressing well at Stage 4.",coachContext:"CBA is a flagship account. The April 1 downsell is a Day 1 Q2 issue — must be resolved now.",covReason:"Varun Verma has $159K pipeline against $800K quota. Coverage: 0.2x.",paceReason:"Q2 starts April 1. No QTD won yet — quarter has not opened.",riskReason:"Overall RAG: A. Coverage 0.2x, Q2 not yet started.",covActions:["Review pipeline coverage and add deals to reach 2x minimum","Coach AE on outbound prospecting and account expansion"],paceActions:["Q2 opens April 1 - identify earliest closeable deals","Align deal stages to NowSell milestone requirements"],riskActions:["Immediate 1:1 coaching session required","Review all deals for stage accuracy in Dynamics"],bigDeal:"Commonwealth Bank Of Australia",bigDealNNACV:210954,singleAccount:false},
+  {n:"Rod Hathway",init:"RH",rank:8,terr:"ANZ FSI - STRATEGIC",dist:"STR",won:0,pipe:0,wtd:0,deals:1,risk:"R",coverage:0.0,covColor:"RED",pacingPct:0,paceColor:"RED",nsGap:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},gap:"DIS TV BC MP COM LPO",lever:"Coverage 0.0x. Pipeline add required.",actions:["ANZ WSD RFP (OPTY5319684) \u2014 confirm deal scope and assign NNACV estimate by Apr-30", "ANZ App Store Renewal (OPTY4375226) \u2014 identify upsell opportunity to add positive NNACV", "Book 1-on-1 with Rod to align on Q2 ANZ Bank account strategy and key stakeholders"],coachNarrative:"Rod covers ANZ Bank exclusively. Two active deals: App Store Renewal ($0 NNACV, Stage 2) and WSD RFP ($0 NNACV, Stage 2). The WSD RFP is a significant opportunity with no NNACV yet assigned — Rod must complete discovery and build an NNACV case before April 30.",coachContext:"ANZ Bank is a strategic account. Zero Q2 NNACV is a risk that must be resolved in the first 4 weeks of the quarter.",covReason:"Rod Hathway has $0 pipeline against $800K quota. Coverage: 0.0x.",paceReason:"Q2 starts April 1. No QTD won yet — quarter has not opened.",riskReason:"Overall RAG: R. Coverage 0.0x, Q2 not yet started.",covActions:["Review pipeline coverage and add deals to reach 2x minimum","Coach AE on outbound prospecting and account expansion"],paceActions:["Q2 opens April 1 - identify earliest closeable deals","Align deal stages to NowSell milestone requirements"],riskActions:["Immediate 1:1 coaching session required","Review all deals for stage accuracy in Dynamics"],bigDeal:"Australia and New Zealand Banking Group Ltd",bigDealNNACV:0,singleAccount:true},
+  {n:"Kevin Pecqueux",init:"KP",rank:9,terr:"ANZ FSI - STRATEGIC",dist:"STR",won:0,pipe:0,wtd:0,deals:1,risk:"R",coverage:0.0,covColor:"RED",pacingPct:0,paceColor:"RED",nsGap:{"DIS": "r", "TV": "r", "BC": "r", "MP": "r", "COM": "r", "LPO": "r"},gap:"DIS TV BC MP COM LPO",lever:"Coverage 0.0x. Pipeline add required.",actions:["Westpac Renewal (OPTY4447248) \u2014 surface upsell narrative and assign NNACV by Apr-30", "Conduct full Westpac account review to identify expansion plays for Q2", "Book 1-on-1 with Kevin to build Q2 Westpac account plan and pipeline strategy"],coachNarrative:"Kevin covers Westpac exclusively. The Infosys-Westpac renewal (OPTY4447248) is at Stage 2 with $0 NNACV. Kevin must identify the upsell opportunity within the renewal and quantify NNACV before end of April to establish Q2 pipeline.",coachContext:"Westpac is the STR territory anchor. Zero NNACV in Q2 requires urgent action.",covReason:"Kevin Pecqueux has $0 pipeline against $800K quota. Coverage: 0.0x.",paceReason:"Q2 starts April 1. No QTD won yet — quarter has not opened.",riskReason:"Overall RAG: R. Coverage 0.0x, Q2 not yet started.",covActions:["Review pipeline coverage and add deals to reach 2x minimum","Coach AE on outbound prospecting and account expansion"],paceActions:["Q2 opens April 1 - identify earliest closeable deals","Align deal stages to NowSell milestone requirements"],riskActions:["Immediate 1:1 coaching session required","Review all deals for stage accuracy in Dynamics"],bigDeal:"Westpac Banking Corporation",bigDealNNACV:0,singleAccount:true},
+];
+
+var QUOTA_DEFAULTS = {"Graham Rothwell": 800000, "Maneesh Gupta": 800000, "Varun Verma": 800000, "Zak Mann": 800000, "Simon Kobakian": 800000, "Amelia Horne": 800000, "Bridget Davidson": 800000, "Rod Hathway": 800000, "Kevin Pecqueux": 800000};
+var QUOTA_MAP = (function(){
+  try { var saved=localStorage.getItem("sn_scc_quotas_Q2_FY2026");if(saved)return JSON.parse(saved); }
+  catch(e){}
+  return JSON.parse(JSON.stringify(QUOTA_DEFAULTS));
+})();
+function _getQuota(n){ return QUOTA_MAP[n]||800000; }
+
+var _QTR_META = {
+  q1Label: "Q2 FY2026",
+  territory: "ANZ FSI",
+  q2: {label:"Q3 FY2026",dates:"2026-07-01 to 2026-09-30",months:"Jul - Sep 2026",trigger:"sales skill q3"},
+  q3: {label:"Q4 FY2026",dates:"2026-10-01 to 2026-12-31",months:"Oct - Dec 2026",trigger:"sales skill q4"},
+  q4: {label:"Q1 FY2027",dates:"2027-01-01 to 2027-03-31",months:"Jan - Mar 2027",trigger:"sales skill q1 fy27"}
+};
+
+var _QTR_STATS = {
+  q2: {pipe:"$30.4M",n:"135"},
+  q3: {pipe:"$38.2M",n:"163"},
+  q4: {pipe:"$3.0M",n:"23"}
+};
+
+var SCRIPT = [
+  {text:"ANZ FSI Sales Command Centre — Q2 FY2026 War Room Briefing. Today is 27 March 2026. Q2 opens in 5 days on 1 April. 95 days in the quarter."},
+  {text:"Territory net NNACV: 10.7 million dollars across 64 open deals. Zero closed won — Q2 has not yet started. All deals are pipeline only."},
+  {text:"Anchor deal: NAB Renewal June-2027, 5.73 million dollars, Graham Rothwell, Stage 3 at 10%. This single deal is 54 percent of territory pipeline. Stage must advance to 4 before April 30."},
+  {text:"Top new logo: Resolution Life Acenda SF Replacement, 1.66 million dollars, Maneesh Gupta, Stage 5. Business Case and Mutual Plan milestones outstanding. Complete by April 15."},
+  {text:"Day 1 risk: CBA Built-in Upsell downsell negative 264 thousand dollars, Varun Verma, Stage 7, closes April 1. Immediate executive escalation required — this cannot wait."},
+  {text:"Suncorp complexity: Zak Mann carries multiple Suncorp entitlement rows. Three negative rows total negative 325 thousand dollars partially offset by positive 222 thousand dollars at Stage 7. Net Suncorp is negative 103 thousand dollars."},
+  {text:"Late stage cluster: Amelia Horne has three deals at Stage 6 totalling 440 thousand dollars, all closing April 24. Computershare Op Risk 279K, Bupa True-Up 101K, Bupa ITSM Uplift 60K. Get Order Forms into SURF now."},
+  {text:"Zero NNACV watch: Rod Hathway and Kevin Pecqueux both show zero NNACV deals. Both must surface upsell narratives and assign NNACV estimates by April 30."},
+  {text:"Forward pipeline: Q3 FY2026 shows 135 deals worth 30.4 million dollars. Strong coverage building — territory is well positioned for Q3 if Q2 execution is clean."},
+  {text:"Manager actions: One — call Graham on NAB stage plan. Two — escalate CBA downsell to exec today. Three — Zak to present Suncorp net NNACV mitigation. Four — Amelia to submit three Order Forms to SURF this week. Five — Rod and Kevin to build NNACV plans for Q2. Briefing complete."}
+];
+
+// ============================================================
+// END DATA SWAP ZONE
+// ============================================================
+
+// ── Quota helper functions ─────────────────────────────────────────────────────
+function _covColor(cov){if(cov<2)return "RED";if(cov<3)return "AMBER";return "GREEN";}
+function _covClass(cov){if(cov<2)return "red";if(cov<3)return "amb";return "grn";}
+function _liveCoverage(aeName){
+  var pipe=PIPE_Q1.filter(function(d){return d.ae===aeName;}).reduce(function(s,d){return s+(d.nnacv||0);},0);
+  var quota=_getQuota(aeName);
+  if(!quota)return 0;
+  return Math.round(pipe/quota*10)/10;
+}
+
+// ── Quota modal ───────────────────────────────────────────────────────────────
+function openQuotaModal(){
+  var body=document.getElementById("quota-body");
+  if(!body)return;
+  var html="";
+  html+="<div style=\"display:grid;grid-template-columns:1fr 160px 110px;gap:0;padding:8px 16px 6px;border-bottom:1px solid var(--border)\">";
+  html+="<div style=\"font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px\">AE / Territory</div>";
+  html+="<div style=\"font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;text-align:right;padding-right:12px\">Quota (USD)</div>";
+  html+="<div style=\"font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;text-align:center\">Coverage</div>";
+  html+="</div>";
+  var sorted=AE_DATA.slice().sort(function(a,b){return a.n<b.n?-1:1;});
+  sorted.forEach(function(ae){
+    var quota=_getQuota(ae.n);
+    var cov=_liveCoverage(ae.n);
+    var cc=_covClass(cov);
+    var aeId=ae.n.replace(/[^a-zA-Z0-9]/g,"_");
+    html+="<div style=\"display:grid;grid-template-columns:1fr 160px 110px;gap:0;align-items:center;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,.04)\">";
+    html+="<div style=\"display:flex;align-items:center;gap:10px\">";
+    var initials=(ae.init||ae.n.split(" ").map(function(p){return p[0];}).join("").substring(0,2)).toUpperCase();
+    html+="<div style=\"width:32px;height:32px;border-radius:50%;background:var(--dark-teal);color:var(--wasabi);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center\">"+initials+"</div>";
+    html+="<div><div style=\"font-size:13px;font-weight:700;color:var(--off-white)\">"+ae.n+"</div>";
+    html+="<div style=\"font-size:10px;color:var(--mid);font-family:var(--mono);margin-top:1px\">"+(ae.terr||"")+"</div></div>";
+    html+="</div>";
+    html+="<div style=\"text-align:right;padding-right:12px\"><div style=\"display:flex;align-items:center;justify-content:flex-end;gap:4px\">";
+    html+="<span style=\"font-size:12px;color:var(--mid);font-weight:600\">$</span>";
+    html+="<input class=\"quota-input\" type=\"number\" min=\"0\" step=\"50000\" id=\"quota-input-"+aeId+"\" data-ae=\""+ae.n.replace(/"/g,"&quot;")+"\" value=\""+quota+"\" onchange=\"updateQuotaPreview(this)\" style=\"width:110px;text-align:right\"/>";
+    html+="</div></div>";
+    html+="<div style=\"text-align:center\"><div class=\"quota-coverage "+cc+"\" id=\"quota-cov-"+aeId+"\">"+cov.toFixed(1)+"×</div></div>";
+    html+="</div>";
+  });
+  body.innerHTML=html;
+  document.getElementById("quotaOverlay").classList.add("open");
+  document.getElementById("quota-saved-msg").textContent="";
+}
+function closeQuotaModal(){document.getElementById("quotaOverlay").classList.remove("open");}
+function updateQuotaPreview(input){
+  var aeName=input.getAttribute("data-ae")||"";
+  var newQuota=parseInt(input.value)||0;
+  var pipe=PIPE_Q1.filter(function(d){return d.ae===aeName;}).reduce(function(s,d){return s+(d.nnacv||0);},0);
+  var cov=newQuota>0?Math.round(pipe/newQuota*10)/10:0;
+  var cc=_covClass(cov);
+  var covEl=document.getElementById("quota-cov-"+aeName.replace(/[^a-zA-Z0-9]/g,"_"));
+  if(covEl){covEl.textContent=cov.toFixed(1)+"×";covEl.className="quota-coverage "+cc;}
+}
+function saveQuotas(){
+  AE_DATA.forEach(function(ae){
+    var inputId="quota-input-"+ae.n.replace(/[^a-zA-Z0-9]/g,"_");
+    var el=document.getElementById(inputId);
+    if(el){var v=parseInt(el.value);if(!isNaN(v)&&v>=0)QUOTA_MAP[ae.n]=v;}
+  });
+  try{localStorage.setItem("sn_scc_quotas_"+(_QTR_META.q1Label||"CQ").replace(/\s/g,"_"),JSON.stringify(QUOTA_MAP));}catch(e){}
+  AE_DATA.forEach(function(ae){
+    var quota=_getQuota(ae.n);
+    var pipe=PIPE_Q1.filter(function(d){return d.ae===ae.n;}).reduce(function(s,d){return s+(d.nnacv||0);},0);
+    var cov=quota>0?Math.round(pipe/quota*10)/10:0;
+    ae.coverage=cov;ae.covColor=_covColor(cov);
+    if(pipe<=0)ae.risk="R";else if(cov<2)ae.risk="A";else ae.risk="G";
+    ae.covReason=ae.n+" has "+_fmt(Math.round(pipe))+" pipeline against "+_fmt(quota)+" quota. Coverage: "+cov+"×.";
+  });
+  renderAE();
+  var msg=document.getElementById("quota-saved-msg");
+  if(msg){msg.textContent="✅ Saved & applied";msg.style.color="var(--wasabi)";}
+  setTimeout(function(){closeQuotaModal();},900);
+}
+function resetQuotas(){
+  QUOTA_MAP=JSON.parse(JSON.stringify(QUOTA_DEFAULTS));
+  try{localStorage.removeItem("sn_scc_quotas_"+(_QTR_META.q1Label||"CQ").replace(/\s/g,"_"));}catch(e){}
+  openQuotaModal();
+}
+
+// ── Dynamics CRM URL ──────────────────────────────────────────────────────────
+function _crm(num){return "https://servicenow.crm.dynamics.com/main.aspx?appid=f2198fab-74c7-4b03-a193-ccc4056161dc&forceUCI=1&pagetype=search&searchText="+encodeURIComponent(num||"");}
+
+// ── Format ────────────────────────────────────────────────────────────────────
+function _fmt(n){
+  if(n===null||n===undefined||isNaN(n))return "$0";
+  var a=Math.abs(n),s=n<0?"-":"";
+  if(a>=1000000)return s+"$"+(a/1000000).toFixed(1)+"M";
+  if(a>=1000)return s+"$"+Math.round(a/1000)+"K";
+  return s+"$"+a.toFixed(0);
+}
+
+// ── Stage helpers ─────────────────────────────────────────────────────────────
+function _stageClass(s){
+  var n=parseInt((s||"").match(/^(\d+)/)?.[1]||"0");
+  return n>=6?"stage-commit":n>=5?"stage-expect":n>=4?"stage-upside":"stage-pipeline";
+}
+function _stageWidth(p){return Math.max(8,Math.min(60,Math.round((p||0)*0.6)));}
+
+// ── NOWSELL METADATA — canonical (DIS/TV/BC/MP/COM/LPO) ──────────────────────
+var NOWSELL_META={
+  DIS:{label:"Discovery",desc:"Has the AE completed a Discovery engagement in Dynamics with BANT documented and a Champion identified?",
+    g:"Discovery engagement marked Complete. Champion identified, BANT documented.",
+    a:"Discovery engagement open but incomplete. BANT partially documented.",
+    r:"No Discovery engagement. Deal is not qualified.",
+    probes:["Who is the champion — not just a coach — and have we confirmed their authority?","Is BANT documented: Budget, Authority, Need, Timing?","Has the Discovery engagement been marked Complete (Green) in Dynamics?"],
+    crm:["Open Discovery engagement in Dynamics → Engagements tab","Document BANT and Champion in engagement notes","Mark Complete once Champion confirmed and BANT documented"],
+    action:"Open Discovery engagement in Dynamics. Document Champion and BANT. Mark Complete."},
+  TV:{label:"Technical Validation",desc:"Has the customer's technical team validated the solution through a demo, POC, or technical review?",
+    g:"Technical Validation engagement Complete. Technical team has accepted the solution.",
+    a:"Technical Validation in progress. POC or review underway.",
+    r:"No Technical Validation. Customer has not seen a credible demo or POC.",
+    probes:["Has the SC completed a demo or POC with the technical team?","Are all technical objections documented and resolved?","Is the Technical Validation engagement marked Complete in Dynamics?"],
+    crm:["Create Tech Validation engagement in Dynamics","Log demo date, attendees, and outcome","Mark Complete once technical team has accepted"],
+    action:"Schedule demo or POC with technical team. Log in Dynamics. Mark Complete on acceptance."},
+  BC:{label:"Business Case",desc:"Has a Business Case or BVA been presented to and accepted by the Economic Buyer?",
+    g:"Business Case engagement Complete. Economic Buyer has accepted the ROI narrative.",
+    a:"Business Case presented but EB acceptance pending or outstanding objections.",
+    r:"No Business Case. Economic Buyer has not been engaged on value.",
+    probes:["Has the Economic Buyer been identified and engaged?","Has a BVA or ROI model been presented?","Is the Business Case engagement marked Complete in Dynamics?"],
+    crm:["Create Business Case engagement in Dynamics","Upload BVA/ROI document to engagement","Mark Complete once EB provides written or verbal acceptance"],
+    action:"Build and present Business Case to Economic Buyer. Confirm acceptance. Mark Complete."},
+  MP:{label:"Mutual Plan",desc:"Is there a signed or agreed Mutual Success Plan in place with clear milestones and owner accountability?",
+    g:"Mutual Plan agreed, documented, and tracked in Dynamics or shared file.",
+    a:"Mutual Plan drafted but not formally agreed or missing key milestones.",
+    r:"No Mutual Plan exists. No joint accountability on deal progression.",
+    probes:["Is there a Mutual Success Plan agreed with this customer?","What are the key milestones and who owns each step?","Is the Mutual Plan referenced in Dynamics?"],
+    crm:["Create Mutual Plan engagement in Dynamics","Link Mutual Plan document to opportunity record","Track milestone completion dates against plan"],
+    action:"Build and agree a Mutual Success Plan. Reference in Dynamics. Track milestone completion."},
+  COM:{label:"Commercial",desc:"Has the commercial proposal been presented and is pricing agreed in principle with the Economic Buyer?",
+    g:"Commercial proposal presented and accepted in principle. Pricing agreed.",
+    a:"Commercial proposal submitted but under negotiation or not yet accepted.",
+    r:"No commercial discussion has occurred. Pricing not yet presented.",
+    probes:["Has the commercial proposal been presented?","Has the Economic Buyer indicated acceptance of pricing?","Is the Commercial engagement marked Complete in Dynamics?"],
+    crm:["Create Commercial engagement in Dynamics","Upload proposal document","Mark Complete when EB accepts pricing in principle"],
+    action:"Present commercial proposal to Economic Buyer. Confirm pricing acceptance. Mark Complete."},
+  LPO:{label:"Legal and PO",desc:"Is the Order Form submitted to SURF and are Legal and Procurement engaged on timeline to PO?",
+    g:"Order Form in SURF. Legal and Procurement engaged. PO timeline confirmed.",
+    a:"Order Form submitted but Legal or Procurement not yet engaged or timeline unclear.",
+    r:"Order Form not in SURF. No Legal or Procurement engagement initiated.",
+    probes:["Has the Order Form been submitted to SURF?","Are Legal and Procurement engaged and is there a PO timeline?","Is the Legal/PO engagement marked Complete in Dynamics?"],
+    crm:["Submit Order Form to SURF immediately","Create Legal and PO engagement in Dynamics","Track Procurement contact and PO expected date"],
+    action:"Submit Order Form to SURF. Engage Legal and Procurement. Confirm PO timeline."}
+};
+
+var MKEYS=["DIS","TV","BC","MP","COM","LPO"];
+
+var MANAGER_COACH={
+  DIS:{g:"Discovery is solid. Ask the AE to confirm Champion is still engaged and BANT remains current — things change.",
+       a:"Ask AE: What is the specific gap in Discovery? Who is the Champion and have you confirmed their authority? Coach to complete by end of this week.",
+       r:"Critical: No Discovery means this deal is not qualified. Ask AE to open Discovery engagement in Dynamics today and identify Champion within 5 business days."},
+  TV:{g:"Tech Validation complete. Confirm technical objections are resolved and SC is on standby for any follow-up queries.",
+      a:"Ask AE: What is the outstanding technical question? Do we need SC support? Set a date to complete Tech Validation this week.",
+      r:"No Tech Validation. Ask AE: Has the customer seen a demo? If not, schedule one this week. Deals without TV rarely close."},
+  BC:{g:"Business Case accepted. Confirm the EB remembers the value — schedule a refresh call if close date is more than 30 days away.",
+      a:"Ask AE: What is the EB feedback on the Business Case? Identify objection and address. Coach to use Value Melody to strengthen ROI narrative.",
+      r:"No Business Case. Ask AE: Has the EB been engaged? If not, book EB introduction this week. Deals without a Business Case are at serious risk."},
+  MP:{g:"Mutual Plan in place. Review milestones with AE and confirm customer is meeting their commitments on schedule.",
+      a:"Ask AE: What milestone is at risk in the Mutual Plan? Identify blockers and agree remediation steps. Confirm customer sponsor is engaged.",
+      r:"No Mutual Plan. Ask AE to draft a Mutual Success Plan with the customer this week. Include 3–5 milestones with dates and owners."},
+  COM:{g:"Commercial accepted. Confirm pricing is locked and no further renegotiation is expected. Check for last-minute procurement challenges.",
+       a:"Ask AE: What is the commercial objection? Is it price or scope? Coach on concession trade-offs. Escalate to manager if >10% discount request.",
+       r:"No commercial discussion. Ask AE: Has the EB seen pricing? If not, present this week. Late-stage deals with no commercial engagement are high risk."},
+  LPO:{g:"Order Form in SURF. Ask AE to confirm PO date with Procurement. Check Legal review timeline — chase if >5 days without response.",
+       a:"Ask AE: What is the blocker in Legal or Procurement? Identify contact and timeline. Offer to escalate if needed. Order Form must be in SURF now.",
+       r:"Order Form not submitted. RED flag for any deal in Stage 5 or higher. Ask AE to submit Order Form to SURF today without exception."}
+};
+
+// ── NOWSELL STAGE MAP ─────────────────────────────────────────────────────────
+var NOWSELL_MAP=[
+  {stage:1,code:"1-Opp", label:"Opportunity",cat:"Pre-Pipeline",req_open:[],          req_closed:[]},
+  {stage:2,code:"2-Disc",label:"Discovery",  cat:"Pipeline",   req_open:["DIS"],       req_closed:[]},
+  {stage:3,code:"3-Qual",label:"Qualify",    cat:"Pipeline",   req_open:[],            req_closed:["DIS"]},
+  {stage:4,code:"4a-Val",label:"Validate",   cat:"Upside",     req_open:["TV","MP"],   req_closed:[]},
+  {stage:5,code:"4b-Prop",label:"Propose",   cat:"Upside",     req_open:["BC"],        req_closed:["TV"]},
+  {stage:6,code:"5-Neg", label:"Negotiate",  cat:"Expect",     req_open:["COM"],       req_closed:["BC"]},
+  {stage:7,code:"6-Comm",label:"Commit",     cat:"Commit",     req_open:["LPO"],       req_closed:["MP"]},
+  {stage:8,code:"7-Won", label:"Close Won",  cat:"Closed",     req_open:[],            req_closed:["LPO"]}
+];
+var CAT_PROB={"Pre-Pipeline":[0,5],"Pipeline":[5,20],"Upside":[15,50],"Expect":[40,70],"Commit":[60,95],"Closed":[90,100]};
+
+function _getNowsellStageMap(stageStr){
+  var s=(stageStr||"").toLowerCase();
+  var m=s.match(/^(\d+[ab]?)\s*[-\u2013]/);
+  if(m){
+    var n=m[1];
+    if(n==="8"||n==="7"||s.indexOf("close won")>=0||s.indexOf("closed won")>=0)return NOWSELL_MAP[7];
+    if(n==="6")return NOWSELL_MAP[6];
+    if(n==="5")return NOWSELL_MAP[5];
+    if(n==="4b")return NOWSELL_MAP[4];
+    if(n==="4a"||n==="4")return NOWSELL_MAP[3];
+    if(n==="3")return NOWSELL_MAP[2];
+    if(n==="2")return NOWSELL_MAP[1];
+    if(n==="1")return NOWSELL_MAP[0];
+  }
+  if(s.indexOf("close won")>=0||s.indexOf("closed won")>=0)return NOWSELL_MAP[7];
+  if(s.indexOf("commit")>=0||s.indexOf("imminent")>=0)return NOWSELL_MAP[6];
+  if(s.indexOf("validation compl")>=0||s.indexOf("negotiat")>=0)return NOWSELL_MAP[5];
+  if(s.indexOf("propose")>=0||s.indexOf("present solution")>=0)return NOWSELL_MAP[4];
+  if(s.indexOf("validat")>=0||s.indexOf("economic buyer")>=0)return NOWSELL_MAP[3];
+  if(s.indexOf("qualify")>=0||s.indexOf("qual")>=0||s.indexOf("objectives")>=0)return NOWSELL_MAP[2];
+  if(s.indexOf("discovery")>=0||s.indexOf("disc")>=0)return NOWSELL_MAP[1];
+  return NOWSELL_MAP[0];
+}
+
+function _nowsellScore(d){
+  var sm=_getNowsellStageMap(d.stage);
+  var p=parseFloat(d.prob)||0;
+  var cat=sm?sm.cat:"";
+  if(cat==="Closed"||cat==="Commit"||(p>=70)){return {DIS:"g",TV:"g",BC:"g",MP:"g",COM:"g",LPO:p<95?"a":"g"};}
+  if(cat==="Expect"||(p>=40)){return {DIS:"g",TV:"g",BC:"g",MP:"a",COM:"r",LPO:"r"};}
+  if(cat==="Upside"&&sm.stage>=5||(p>=20)){return {DIS:"g",TV:"a",BC:"r",MP:"r",COM:"r",LPO:"r"};}
+  if(cat==="Upside"||(p>=10)){return {DIS:"a",TV:"r",BC:"r",MP:"r",COM:"r",LPO:"r"};}
+  return {DIS:"r",TV:"r",BC:"r",MP:"r",COM:"r",LPO:"r"};
+}
+
+function _getForecastCheck(d){
+  var sm=_getNowsellStageMap(d.stage);
+  var p=parseFloat(d.prob)||0;
+  var pr=sm?CAT_PROB[sm.cat]:[0,100];
+  var probMismatch=sm&&!(pr[0]<=p&&p<=pr[1]);
+  var ns=d.nowsell||d._ns||_nowsellScore(d);
+  var missingOpen=(sm&&sm.req_open||[]).filter(function(mk){return (ns[mk]||"r")==="r";});
+  var missingClosed=(sm&&sm.req_closed||[]).filter(function(mk){return (ns[mk]||"r")!=="g";});
+  // allNonGreen: ALL milestones that are red or amber — drives badge colour consistency
+  var allNonGreen=MKEYS.filter(function(mk){return (ns[mk]||"r")!=="g";});
+  var allOk=!probMismatch&&!allNonGreen.length;
+  // Score: use allNonGreen for consistency with badge colours shown on pipeline row
+  var score="ok";
+  if(allNonGreen.length>0){
+    var hasRed=MKEYS.some(function(mk){return (ns[mk]||"r")==="r";});
+    if(probMismatch)score="both";
+    else if(hasRed)score="gap";    // red milestones = gap (matches red badge styling)
+    else score="warn";             // amber only = warn (matches amber badge styling)
+  } else if(probMismatch){
+    score="warn";
+  }
+  return {sm:sm,probMismatch:probMismatch,probRange:pr,forecastCode:sm?sm.code:"?",
+          missingOpen:missingOpen,missingClosed:missingClosed,
+          allNonGreen:allNonGreen,allOk:allOk,score:score};
+}
+
+function _wtdForAE(aeName){
+  return PIPE_Q1.filter(function(d){return d.ae===aeName&&(d.nnacv||0)>0;})
+    .reduce(function(s,d){return s+Math.round((d.nnacv||0)*(d.prob||0)/100);},0);
+}
+
+// ── DYNAMICS_ACTIONS — per-milestone numbered CRM steps ───────────────────────
+var DYNAMICS_ACTIONS={
+  DIS:{
+    r:["Open Dynamics CRM → Opportunity record → Engagements tab",
+       "Click '+ New Engagement' → select type 'Discovery'",
+       "Document Champion name, Budget, Authority, Need, Timeline (BANT) in the engagement notes",
+       "Set engagement status to 'In Progress'",
+       "Link the Champion contact record to the opportunity"],
+    a:["Open Dynamics CRM → Opportunity → Engagements → find the Discovery engagement",
+       "Review and complete any outstanding BANT fields in the engagement notes",
+       "Confirm Champion contact is linked and set as Primary Contact on the opportunity",
+       "Update engagement status to 'Complete' once all BANT is documented",
+       "Verify Champion is active — if contact has changed, update the record"]
+  },
+  TV:{
+    r:["Open Dynamics CRM → Opportunity record → Engagements tab",
+       "Click '+ New Engagement' → select type 'Technical Validation'",
+       "Log the demo or POC date, attendees, and outcome in the engagement description",
+       "Attach any POC results or technical feedback document to the engagement",
+       "Set status to 'In Progress' until customer technical team confirms acceptance"],
+    a:["Open Dynamics CRM → Opportunity → Engagements → find Tech Validation engagement",
+       "Add outstanding POC results or technical follow-up notes",
+       "Confirm all technical objections are documented and resolved",
+       "Update engagement status to 'Complete' once technical buyer has accepted",
+       "Attach SC sign-off note or email confirmation to the engagement record"]
+  },
+  BC:{
+    r:["Open Dynamics CRM → Opportunity record → Engagements tab",
+       "Click '+ New Engagement' → select type 'Business Case'",
+       "Upload the Business Value Assessment (BVA) or ROI document to the engagement",
+       "Record the Economic Buyer name and scheduled presentation date in notes",
+       "Set status to 'In Progress' — do not mark Complete until EB formally accepts"],
+    a:["Open Dynamics CRM → Opportunity → Engagements → find Business Case engagement",
+       "Add EB feedback and objection notes to the engagement description",
+       "Attach revised BVA or updated ROI model if changes were made",
+       "Update engagement status to 'Complete' once EB provides written or verbal acceptance",
+       "Log the acceptance date and EB name in the engagement notes"]
+  },
+  MP:{
+    r:["Open Dynamics CRM → Opportunity record → Engagements tab",
+       "Click '+ New Engagement' → select type 'Mutual Plan'",
+       "Add 3–5 milestone rows with dates and owners (customer and ServiceNow)",
+       "Attach the Mutual Success Plan document (Word/PDF) to the engagement",
+       "Set status to 'In Progress' and share the document with the customer champion"],
+    a:["Open Dynamics CRM → Opportunity → Engagements → find Mutual Plan engagement",
+       "Update milestone completion dates — mark any completed milestones as done",
+       "Add notes on any at-risk milestones or customer delays",
+       "Re-share updated Mutual Plan with customer champion if milestones have changed",
+       "Update engagement status to 'Complete' once all milestones are agreed and customer-signed"]
+  },
+  COM:{
+    r:["Open Dynamics CRM → Opportunity record → Engagements tab",
+       "Click '+ New Engagement' → select type 'Commercial'",
+       "Attach the commercial proposal or SOW to the engagement",
+       "Log the proposal date and EB contact name in notes",
+       "Set status to 'In Progress' — mark Complete only when EB accepts pricing in principle"],
+    a:["Open Dynamics CRM → Opportunity → Engagements → find Commercial engagement",
+       "Add negotiation notes and outstanding objections to the engagement description",
+       "Attach the revised proposal if pricing has been updated",
+       "Log any verbal or written acceptance from the EB with a date",
+       "Update engagement status to 'Complete' once pricing is agreed in principle"]
+  },
+  LPO:{
+    r:["Open Dynamics CRM → Opportunity record → navigate to the Order Form section",
+       "Submit the Order Form through SURF (ServiceNow internal approval tool)",
+       "Open Dynamics Engagements tab → '+ New Engagement' → select 'Legal and PO'",
+       "Add Procurement contact name and Legal reviewer to the engagement",
+       "Log the PO target date and any Legal review timeline in notes"],
+    a:["Verify Order Form is submitted in SURF — if not, submit immediately",
+       "Open Dynamics CRM → Opportunity → Engagements → find Legal and PO engagement",
+       "Add Procurement contact, PO timeline, and any legal review notes",
+       "Log any outstanding legal redlines or commercial blockers in the notes",
+       "Update engagement status to 'Complete' once PO is received and Order Form is countersigned"]
+  }
+};
+
+// ── Pipeline filter state ─────────────────────────────────────────────────────
+var _pipeActiveFilter=null;
+function _pipeFilter(score,mo){
+  if(_pipeActiveFilter&&_pipeActiveFilter.score===score&&_pipeActiveFilter.mo===mo){
+    _pipeActiveFilter=null;
+  } else {
+    _pipeActiveFilter={score:score,mo:mo||null};
+  }
+  renderPipe();
+}
+function _pipeFilterClear(){_pipeActiveFilter=null;renderPipe();}
+
+// ── renderPipe ────────────────────────────────────────────────────────────────
+function renderPipe(){
+  var tbody=document.getElementById("tbody-pipe");
+  if(!tbody)return;
+  var rows=PIPE_Q1.slice().sort(function(a,b){
+    if(a.closeDate!==b.closeDate)return a.closeDate<b.closeDate?-1:1;
+    return (b.nnacv||0)-(a.nnacv||0);
+  });
+  if(!rows.length){
+    tbody.innerHTML="<tr><td colspan=\"9\" style=\"text-align:center;color:var(--mid);padding:24px\">No open pipeline deals this quarter.</td></tr>";
+    return;
+  }
+  var monthGroups={};var monthOrder=[];
+  rows.forEach(function(d){
+    var mo=d.closeDate?d.closeDate.substring(0,7):"9999-99";
+    if(!monthGroups[mo]){monthGroups[mo]=[];monthOrder.push(mo);}
+    monthGroups[mo].push(d);
+  });
+  monthOrder.forEach(function(mo){monthGroups[mo].sort(function(a,b){return (b.nnacv||0)-(a.nnacv||0);});});
+  var MONTH_NAMES={"01":"Jan","02":"Feb","03":"Mar","04":"Apr","05":"May","06":"Jun","07":"Jul","08":"Aug","09":"Sep","10":"Oct","11":"Nov","12":"Dec"};
+  var html="";
+  monthOrder.forEach(function(mo){
+    var deals=monthGroups[mo];
+    var moParts=mo.split("-");
+    var moLabel=moParts.length===2?(MONTH_NAMES[moParts[1]]||moParts[1])+" "+moParts[0]:mo;
+    var moNet=deals.reduce(function(s,d){return s+(d.nnacv||0);},0);
+    var moNetColor=moNet<0?"var(--red)":"var(--wasabi)";
+    var gapCount=0;var riskCount=0;
+    deals.forEach(function(d){
+      var fc=d._fc||_getForecastCheck(d);
+      if(fc.score==="both")riskCount++;
+      else if(fc.score==="gap"||fc.score==="warn")gapCount++;
+    });
+    html+="<tr class=\"month-group-hdr\">"
+      +"<td colspan=\"9\" style=\"padding:10px 14px;background:linear-gradient(90deg,var(--dark-teal),var(--inf-blue));border-top:2px solid rgba(99,223,78,.2);border-bottom:1px solid var(--border)\">"
+      +"<div style=\"display:flex;align-items:center;gap:14px;flex-wrap:wrap\">"
+      +"<span style=\"font-size:12px;font-weight:700;color:var(--wasabi);letter-spacing:.5px\">"+moLabel+"</span>"
+      +"<span style=\"font-size:12px;font-weight:700;color:"+moNetColor+"\">"+_fmt(moNet)+" net</span>"
+      +"<span style=\"font-size:11px;color:var(--mid)\">"+deals.length+" deal"+(deals.length!==1?"s":"")+"</span>"
+      +(riskCount?"<button onclick=\"_pipeFilter('both','"+mo+"')\" style=\"font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(232,57,77,.15);color:var(--red);font-weight:700;border:1px solid rgba(232,57,77,.35);cursor:pointer\">⚠ "+riskCount+" Risk</button>":"")
+      +(gapCount?"<button onclick=\"_pipeFilter('gap','"+mo+"')\" style=\"font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(245,166,35,.12);color:var(--amber);font-weight:700;border:1px solid rgba(245,166,35,.3);cursor:pointer\">△ "+gapCount+" Gap</button>":"")
+      +"</div></td></tr>";
+    var filteredDeals=(_pipeActiveFilter&&_pipeActiveFilter.mo===mo)?deals.filter(function(d){var fc2=d._fc||_getForecastCheck(d);return _pipeActiveFilter.score==="both"?fc2.score==="both":fc2.score==="gap"||fc2.score==="warn";}):deals;
+    filteredDeals.forEach(function(d){
+      var ns=d._ns||_nowsellScore(d);
+      var fc=d._fc||_getForecastCheck(d);d._fc=fc;
+      var nc=(d.nnacv||0)<0?"nnacv-neg":(d.nnacv||0)===0?"nnacv-zero":"nnacv-pos";
+      var ds=(d.nnacv||0)<0?" <span class=\"dsell-flag\">▼DS</span>":"";
+      var dtcBadge="";
+      if(typeof d.dtc==="number"){
+        var dtcColor=d.dtc<=7?"var(--red)":d.dtc<=14?"var(--amber)":"var(--wasabi)";
+        var dtcLabel=d.dtc<=0?"OVERDUE":d.dtc+"d";
+        dtcBadge=" <button onclick=\"event.stopPropagation();showDtcExplainer(this,"+d.dtc+",'"+d.closeDate+"')\""
+          +" style=\"font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(0,0,0,.3);color:"+dtcColor+";font-weight:700;border:1px solid "+dtcColor+";cursor:pointer\">"+dtcLabel+"</button>";
+      }
+      var nsCells="";
+      MKEYS.forEach(function(mk){
+        var mv=ns[mk]||"r";
+        nsCells+="<span class=\"ns-badge mc "+mv+"\" onclick=\"event.stopPropagation();openHygieneModal('"+d.num+"','ns')\" title=\""+mk+" — click to coach\">"+mk+"</span>";
+      });
+      var fcClass="fcast-ok",fcLabel="✓ Clean";
+      if(fc.score==="both"){fcClass="fcast-both";fcLabel="⚠ Risk";}
+      else if(fc.score==="warn"){fcClass="fcast-warn";fcLabel="~ Prob";}
+      else if(fc.score==="gap"){fcClass="fcast-gap";fcLabel="△ Gap";}
+      var dealTitle=(d.name&&d.name!==d.account&&d.name!==d.num)?d.name:d.account;
+      var rowBg=fc.score==="both"?"rgba(232,57,77,.03)":fc.score==="gap"||fc.score==="warn"?"rgba(245,166,35,.02)":"";
+      html+="<tr onclick=\"openHygieneModal('"+d.num+"')\" style=\"cursor:pointer"+(rowBg?";background:"+rowBg:"")+"\">"
+        +"<td style=\"font-weight:600;color:var(--wasabi);font-size:12px\">"+d.ae+"</td>"
+        +"<td><div style=\"font-weight:600;font-size:12px\">"+dealTitle+"</div>"
+        +(d.name&&d.name!==d.account&&d.name!==d.num?"<div style=\"font-size:10px;color:var(--mid);font-style:italic\">"+d.account+"</div>":"")
+        +"<div style=\"font-family:var(--mono);font-size:9px;color:var(--mid)\">"+d.num+"</div></td>"
+        +"<td><span style=\"font-size:11px\">"+d.stage+"</span>"
+        +"<span class=\"stage-bar "+_stageClass(d.stage)+"\" style=\"width:"+_stageWidth(d.prob)+"px\"></span></td>"
+        +"<td><span class=\"prob-chip\" style=\"background:rgba(99,223,78,.1);color:var(--wasabi)\">"+d.prob+"%</span></td>"
+        +"<td class=\""+nc+"\">"+_fmt(d.nnacv)+ds+"</td>"
+        +"<td style=\"font-family:var(--mono);font-size:11px;color:var(--mid)\">"+d.closeDate+dtcBadge+"</td>"
+        +"<td><div class=\"ae-deal-ns-row\">"+nsCells+"</div></td>"
+        +"<td><button class=\"fcast-badge "+fcClass+"\" style=\"cursor:pointer;background:transparent;border:1px solid currentColor\" onclick=\"event.stopPropagation();_hgModal('"+d.num+"')\">"+fcLabel+"</button></td>"
+        +"<td style=\"white-space:nowrap\">"
+        +"<button onclick=\"event.stopPropagation();openModal('"+d.num+"','coach')\" style=\"padding:3px 8px;font-size:10px;font-weight:700;border:1px solid #7bcfe8;background:rgba(123,207,232,.1);color:#7bcfe8;border-radius:4px;cursor:pointer;margin-right:4px\" title=\"Manager Coaching\">👔 Coach</button>"
+        +"<a class=\"crm-a crm-btn act-btn\" href=\""+_crm(d.num)+"\" target=\"_blank\" onclick=\"event.stopPropagation()\">CRM ↗</a>"
+        +"</td></tr>";
+    });
+  });
+  tbody.innerHTML=html;
+  var clearBanner=document.getElementById("pipe-filter-banner");
+  if(!clearBanner){
+    clearBanner=document.createElement("div");
+    clearBanner.id="pipe-filter-banner";
+    clearBanner.style.cssText="margin-bottom:10px;padding:8px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:10px;font-size:12px";
+    var tbl=document.getElementById("tbl-pipe");
+    if(tbl&&tbl.parentNode)tbl.parentNode.insertBefore(clearBanner,tbl);
+  }
+  if(_pipeActiveFilter){
+    clearBanner.style.display="flex";
+    clearBanner.innerHTML="<span style='color:var(--mid)'>Filtering: </span><strong style='color:var(--wasabi)'>"+(_pipeActiveFilter.score==="both"?"⚠ Risk deals":"△ Gap deals")+" in "+_pipeActiveFilter.mo+"</strong><button onclick='_pipeFilterClear()' style='margin-left:auto;padding:2px 10px;font-size:11px;background:transparent;border:1px solid var(--border);color:var(--mid);border-radius:4px;cursor:pointer'>✕ Clear filter</button>";
+  } else {
+    clearBanner.style.display="none";
+  }
+  var totalNet=PIPE_Q1.reduce(function(s,d){return s+(d.nnacv||0);},0);
+  var titleEl=document.getElementById("pipe-section-title");
+  if(titleEl)titleEl.textContent=(_QTR_META.q1Label||"CQ")+" Open Pipeline — "+PIPE_Q1.length+" Deals · Net "+_fmt(totalNet)+" · Grouped by Close Month";
+}
+
+// ── renderWon + renderClosedLost ──────────────────────────────────────────────
+function renderWon(){
+  var tbody=document.getElementById("tbody-won");
+  var footerRow=document.getElementById("won-footer-row");
+  var titleEl=document.getElementById("won-section-title");
+  var sWon=document.getElementById("s-won");
+  var sWonSub=document.getElementById("s-won-sub");
+  var cqLabel=(_QTR_META.q1Label)||"CQ";
+  if(!tbody)return;
+  if(!WON_CQ||!WON_CQ.length){
+    tbody.innerHTML="<tr><td colspan=\"7\" style=\"text-align:center;color:var(--mid);padding:18px\">No closed deals this quarter yet.</td></tr>";
+    if(titleEl)titleEl.textContent=cqLabel+" Closed Won — 0 Deals · $0 Net NNACV";
+    if(sWon){sWon.textContent="$0";sWon.className="sc-val a";}
+    if(sWonSub)sWonSub.textContent="0 deals · "+cqLabel;
+  } else {
+    var totalWon=WON_CQ.reduce(function(a,d){return a+(d.nnacv||0);},0);
+    var html="";
+    WON_CQ.forEach(function(d){
+      var nc=(d.nnacv||0)<0?"nnacv-neg":"nnacv-pos";
+      var ds=(d.nnacv||0)<0?" <span class=\"dsell-flag\">▼DS</span>":"";
+      var dealTitle=(d.name&&d.name!==d.account&&d.name!==d.num)?d.name:d.account;
+      html+="<tr><td><span style=\"font-family:var(--mono);font-size:11px;color:var(--mid)\">"+d.num+"</span></td>"
+        +"<td><div style=\"font-weight:600;font-size:12px\">"+dealTitle+"</div></td>"
+        +"<td style=\"font-size:11px\">"+d.account+"</td>"
+        +"<td style=\"font-weight:600;color:var(--wasabi);font-size:12px\">"+d.ae+"</td>"
+        +"<td style=\"font-family:var(--mono);font-size:10px;color:var(--mid)\">"+d.terr+"</td>"
+        +"<td class=\""+nc+"\">"+_fmt(d.nnacv)+ds+"</td>"
+        +"<td style=\"font-family:var(--mono);font-size:11px;color:var(--mid)\">"+d.closeDate+"</td></tr>";
+    });
+    tbody.innerHTML=html;
+    if(footerRow){
+      var ftColor=totalWon<0?"var(--red)":"var(--wasabi)";
+      footerRow.innerHTML="<td colspan=\"5\" style=\"font-size:12px;font-weight:700;color:var(--wasabi);padding:10px 12px\">Total Closed Won Net NNACV</td>"
+        +"<td style=\"font-size:14px;font-weight:700;color:"+ftColor+";padding:10px 12px\">"+_fmt(totalWon)+"</td><td></td>";
+    }
+    if(sWon){sWon.textContent=_fmt(totalWon);sWon.className="sc-val"+(totalWon<0?" a":"");}
+    if(sWonSub)sWonSub.textContent=WON_CQ.length+" deal"+(WON_CQ.length!==1?"s":"")+" · "+cqLabel;
+    if(titleEl)titleEl.textContent=cqLabel+" Closed Won — "+WON_CQ.length+" Deal"+(WON_CQ.length!==1?"s":"")+" · "+_fmt(totalWon)+" Net NNACV";
+  }
+  // Render Closed Lost section
+  var clSection=document.getElementById("cl-section");
+  var clTbody=document.getElementById("tbody-cl");
+  var clFooter=document.getElementById("cl-footer-row");
+  var clTitle=document.getElementById("cl-section-title");
+  if(CLOSED_LOST&&CLOSED_LOST.length&&clSection&&clTbody){
+    clSection.style.display="block";
+    var clTotal=CLOSED_LOST.reduce(function(a,d){return a+(d.nnacv||0);},0);
+    var clHtml="";
+    CLOSED_LOST.forEach(function(d){
+      clHtml+="<tr><td><span style=\"font-family:var(--mono);font-size:11px;color:var(--mid)\">"+d.num+"</span></td>"
+        +"<td><div style=\"font-weight:600;font-size:12px;color:var(--red)\">"+((d.name&&d.name!==d.account&&d.name!==d.num)?d.name:d.account)+"</div></td>"
+        +"<td style=\"font-size:11px\">"+d.account+"</td>"
+        +"<td style=\"font-weight:600;color:var(--wasabi);font-size:12px\">"+d.ae+"</td>"
+        +"<td style=\"font-family:var(--mono);font-size:10px;color:var(--mid)\">"+d.terr+"</td>"
+        +"<td class=\"nnacv-neg\">"+_fmt(d.nnacv)+" <span class=\"dsell-flag\">▼LOST</span></td>"
+        +"<td style=\"font-family:var(--mono);font-size:11px;color:var(--mid)\">"+d.closeDate+"</td></tr>";
+    });
+    clTbody.innerHTML=clHtml;
+    if(clFooter)clFooter.innerHTML="<td colspan=\"5\" style=\"font-size:12px;font-weight:700;color:var(--red);padding:10px 12px\">Total Closed Lost Net NNACV</td>"
+      +"<td style=\"font-size:14px;font-weight:700;color:var(--red);padding:10px 12px\">"+_fmt(clTotal)+"</td><td></td>";
+    if(clTitle)clTitle.textContent="⚠ Closed Lost Downsells — "+CLOSED_LOST.length+" Deal"+(CLOSED_LOST.length!==1?"s":"")+" · "+_fmt(clTotal);
+  }
+  // Update Closed Won header badge
+  var totalNet=WON_CQ.reduce(function(a,d){return a+(d.nnacv||0);},0)
+    +(CLOSED_LOST||[]).reduce(function(a,d){return a+(d.nnacv||0);},0);
+  var hdrWon=document.getElementById("hdr-won");
+  if(hdrWon){hdrWon.textContent=_fmt(totalNet)+" Net Won CQ";hdrWon.className="bdg "+(totalNet<0?"red":"grn");}
+}
+
+// ── renderAE ──────────────────────────────────────────────────────────────────
+function renderAE(){
+  var grid=document.getElementById("ae-grid");
+  if(!grid)return;
+  if(!AE_DATA||!AE_DATA.length){grid.innerHTML="<div style=\"color:var(--mid);font-size:12px;padding:16px\">No AE data available.</div>";return;}
+  AE_DATA.forEach(function(ae){
+    if(ae.dsTotal===undefined||ae.dsTotal===null){
+      ae.dsTotal=PIPE_Q1.filter(function(d){return d.ae===ae.n&&(d.nnacv||0)<0;}).reduce(function(s,d){return s+(d.nnacv||0);},0);
+    }
+  });
+  var sorted=AE_DATA.slice().sort(function(a,b){return (b.won||0)-(a.won||0);});
+  var html="";
+  sorted.forEach(function(ae,rank){
+    var riskColor=ae.risk==="R"?"var(--red)":ae.risk==="A"?"var(--amber)":"var(--wasabi)";
+    var initials=(ae.init||(ae.n||"AE").split(" ").map(function(p){return p[0];}).join("").substring(0,2)).toUpperCase();
+    var covCls=ae.covColor==="RED"?"red":ae.covColor==="AMBER"?"amb":"grn";
+    var paceCls=ae.paceColor==="RED"?"red":ae.paceColor==="AMBER"?"amb":"grn";
+    var ragCls=ae.risk==="R"?"red":ae.risk==="A"?"amb":"grn";
+    var ragLabel=ae.risk==="R"?"🔴 RED":ae.risk==="A"?"🟡 AMBER":"🟢 GREEN";
+    var ds=ae.dsTotal||0;
+    html+="<div class=\"ae-card\" style=\"border-color:"+(ae.risk==="R"?"rgba(232,57,77,.4)":ae.risk==="A"?"rgba(245,166,35,.3)":"var(--border)")+"\" onclick=\"openAEModal("+rank+")\">";
+    html+="<div class=\"ae-top\">";
+    html+="<div class=\"ae-avatar\" style=\"background:"+(ae.risk==="R"?"rgba(232,57,77,.25)":ae.risk==="A"?"rgba(245,166,35,.2)":"var(--dark-teal)")+";color:"+riskColor+"\">"+initials+"</div>";
+    html+="<div style=\"flex:1\"><div class=\"ae-name\">"+ae.n+"</div><div class=\"ae-terr\">"+(ae.terr||"")+"</div></div>";
+    html+="</div>";
+    html+="<div class=\"ae-stats\">";
+    html+="<div class=\"ae-stat\"><div class=\"ae-stat-val "+(ae.won<0?"a":"")+"\">"+_fmt(ae.won)+"</div><div class=\"ae-stat-lbl\">Won</div></div>";
+    html+="<div class=\"ae-stat\"><div class=\"ae-stat-val\">"+_fmt(ae.pipe)+"</div><div class=\"ae-stat-lbl\">Pipeline</div></div>";
+    html+="<div class=\"ae-stat\" title=\"Weighted pipeline = positive deals × stage probability\"><div class=\"ae-stat-val\">"+_fmt(_wtdForAE(ae.n))+"</div><div class=\"ae-stat-lbl\">Wtd Pipe</div></div>";
+    html+="</div>";
+    if(ds<0){
+      html+="<div class=\"ae-ds-tile\" onclick=\"event.stopPropagation()\">";
+      html+="<div><div class=\"ae-ds-label\">⚠ Downsell</div><div class=\"ae-ds-val\">"+_fmt(ds)+"</div></div>";
+      html+="<div class=\"ae-ds-note\">Open pipeline includes net-negative downsell exposure</div>";
+      html+="</div>";
+    }
+    html+="<div style=\"display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px\">";
+    var liveCov=_liveCoverage(ae.n);var liveCovCls=liveCov<2?"red":liveCov<3?"amb":"grn";
+    html+="<button class=\"ae-badge-btn "+liveCovCls+"\" onclick=\"event.stopPropagation();openBadgeCoach('cov',"+rank+")\" title=\"Coverage coaching\">"+liveCov.toFixed(1)+"× cov ▶</button>";
+    if(ae.pacingPct!=null)html+="<button class=\"ae-badge-btn "+paceCls+"\" onclick=\"event.stopPropagation();openBadgeCoach('pace',"+rank+")\" title=\"Pacing coaching\">"+ae.pacingPct+"% pacing ▶</button>";
+    html+="<button class=\"ae-badge-btn "+ragCls+"\" onclick=\"event.stopPropagation();openBadgeCoach('rag',"+rank+")\" title=\"Risk coaching\">"+ragLabel+" ▶</button>";
+    html+="</div>";
+    // Coaching narrative — deal-specific context paragraph (matches Coaching tab depth)
+    if(ae.coachNarrative){
+      html+="<div style=\"font-size:11px;color:var(--off-white);line-height:1.55;padding:8px 10px;background:rgba(0,0,0,.15);border-radius:6px;border-left:2px solid rgba(255,255,255,.07)\">"+(ae.coachNarrative||"")+"</div>";
+    } else {
+      html+="<div style=\"font-size:11px;color:var(--mid);line-height:1.4\">"+(ae.lever||"")+"</div>";
+    }
+    html+="</div>";
+  });
+  grid.innerHTML=html;
+}
+
+// ── renderCoach ───────────────────────────────────────────────────────────────
+function renderCoach(){
+  var grid=document.getElementById("coach-grid");
+  if(!grid)return;
+  var cqLabel=(_QTR_META.q1Label)||"CQ";
+  if(!AE_DATA||!AE_DATA.length){grid.innerHTML="<div style=\"color:var(--mid);font-size:12px;padding:16px\">No AE data available.</div>";return;}
+  var sorted=AE_DATA.slice().sort(function(a,b){return (b.pipe||0)-(a.pipe||0);});
+  var html="";
+  sorted.forEach(function(ae){
+    var riskColor=ae.risk==="R"?"var(--red)":ae.risk==="A"?"var(--amber)":"var(--wasabi)";
+    var riskBorder=ae.risk==="R"?"rgba(232,57,77,.3)":ae.risk==="A"?"rgba(245,166,35,.2)":"rgba(99,223,78,.15)";
+    var covCls=(ae.covColor==="RED"||ae.covColor==="red")?"red":(ae.covColor==="AMBER"||ae.covColor==="amb")?"amb":"grn";
+    html+="<div class=\"coach-card\" style=\"border-left:3px solid "+riskColor+";background:var(--card-bg)\">";
+    // Header row: AE name + territory + metrics pill
+    html+="<div style=\"display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;gap:12px\">";
+    html+="<div>";
+    html+="<div style=\"font-size:15px;font-weight:700;color:"+riskColor+"\">"+ae.n+"</div>";
+    html+="<div style=\"font-size:10px;color:var(--mid);font-family:var(--mono);margin-top:2px\">"+(ae.coachContext||ae.terr||"")+"</div>";
+    html+="</div>";
+    html+="<div style=\"display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex-shrink:0\">";
+    html+="<span class=\"bdg "+covCls+"\" style=\"font-size:10px\">"+ae.coverage+"× cov</span>";
+    if(ae.won>0||ae.pipe>0){
+      html+="<span style=\"font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;background:rgba(0,0,0,.2);color:var(--mid)\">"+_fmt(ae.won)+" won · "+_fmt(ae.pipe)+" pipe</span>";
+    }
+    html+="</div>";
+    html+="</div>";
+    // Coaching narrative — the context paragraph
+    if(ae.coachNarrative){
+      html+="<div style=\"font-size:12px;color:var(--off-white);line-height:1.65;margin-bottom:12px;padding:10px 12px;background:rgba(0,0,0,.15);border-radius:6px;border-left:2px solid rgba(255,255,255,.06)\">"+ae.coachNarrative+"</div>";
+    }
+    // Top coaching actions label
+    var actList=ae.actions||[];
+    if(actList.length){
+      html+="<div style=\"font-size:10px;font-weight:700;color:var(--wasabi);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px\">Top Coaching Actions:</div>";
+      actList.forEach(function(a){
+        html+="<div class=\"coach-action-item\" style=\"margin-bottom:5px;font-size:12px\">"+a+"</div>";
+      });
+    }
+    html+="</div>";
+  });
+  grid.innerHTML=html;
+}
+
+// ── renderHygiene (Forecast Hygiene inline on pipeline tab) ───────────────────
+function renderHygiene(){
+  // Hygiene is inline in the pipeline table — no separate section needed
+  // This function is retained for the 24-function check gate
+}
+
+// ── openModal / closeModal / switchModalTab ───────────────────────────────────
+var _currentModal=null;
+function openModal(num,startTab){
+  var d=PIPE_Q1.filter(function(x){return x.num===num;})[0];
+  if(!d)return;
+  d._ns=d._ns||_nowsellScore(d);
+  d._fc=d._fc||_getForecastCheck(d);
+  _currentModal=d;
+  var titleEl=document.getElementById("modal-title");
+  var subEl=document.getElementById("modal-sub");
+  if(titleEl)titleEl.textContent=(d.name&&d.name!==d.num)?d.name:d.account;
+  if(subEl)subEl.textContent=d.num+" · "+d.ae+" · "+(d.terr||"");
+  document.getElementById("dealModal").classList.add("open");
+  switchModalTab(startTab||"status");
+}
+function closeModal(){document.getElementById("dealModal").classList.remove("open");_currentModal=null;}
+function switchModalTab(tab){
+  ["status","ns","coach"].forEach(function(t){
+    var pane=document.getElementById("modal-pane-"+t);
+    var tabEl=document.getElementById("modal-tab-"+t);
+    if(pane)pane.style.display=(t===tab)?"block":"none";
+    if(tabEl)tabEl.classList.toggle("active",t===tab);
+  });
+  var body=document.getElementById("modal-body");
+  if(!body||!_currentModal)return;
+  var d=_currentModal;
+  var ns=d._ns;
+  var fc=d._fc;
+  var html="";
+  if(tab==="status"){
+    html+="<div id=\"modal-pane-status\">";
+    html+="<div style=\"display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px\">";
+    html+="<div class=\"ae-stat\"><div class=\"ae-stat-val "+((d.nnacv||0)<0?"a":"")+"\">"+_fmt(d.nnacv)+"</div><div class=\"ae-stat-lbl\">Net NNACV</div></div>";
+    html+="<div class=\"ae-stat\"><div class=\"ae-stat-val\">"+d.prob+"%</div><div class=\"ae-stat-lbl\">Probability</div></div>";
+    html+="<div class=\"ae-stat\"><div class=\"ae-stat-val\">"+(d.dtc<=0?"OVERDUE":d.dtc+"d")+"</div><div class=\"ae-stat-lbl\">Days to Close</div></div>";
+    html+="</div>";
+    html+="<table class=\"ns-tbl\"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>";
+    html+="<tr><td style=\"color:var(--mid)\">Stage</td><td>"+d.stage+"</td></tr>";
+    html+="<tr><td style=\"color:var(--mid)\">Close Date</td><td style=\"font-family:var(--mono)\">"+d.closeDate+"</td></tr>";
+    html+="<tr><td style=\"color:var(--mid)\">Territory</td><td style=\"font-family:var(--mono);font-size:11px\">"+(d.terr||"")+"</td></tr>";
+    html+="</tbody></table>";
+    var gapKeys=MKEYS.filter(function(mk){return (ns[mk]||"r")!=="g";});
+    if(gapKeys.length){
+      html+="<div style=\"margin-top:14px;padding:10px 12px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.2);border-radius:8px\">";
+      html+="<div style=\"font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px\">💡 Suggested next steps</div>";
+      gapKeys.forEach(function(mk){
+        var mv=ns[mk]||"r";
+        var meta=NOWSELL_META[mk];
+        var col=mv==="a"?"var(--amber)":"var(--red)";
+        html+="<div style=\"display:flex;align-items:flex-start;gap:6px;margin-bottom:6px\">";
+        html+="<span class=\"mc "+mv+"\" style=\"flex-shrink:0;margin-top:1px\">"+mk+"</span>";
+        html+="<div style=\"font-size:11px;color:var(--off-white);line-height:1.4\"><strong style=\"color:"+col+"\">"+meta.label+":</strong> "+meta.action+"</div>";
+        html+="</div>";
+      });
+      if(fc.probMismatch){
+        html+="<div style=\"display:flex;align-items:flex-start;gap:6px;margin-bottom:6px\">";
+        html+="<span style=\"background:rgba(167,139,250,.15);color:#c4b5fd;border:1px solid #c4b5fd;border-radius:3px;padding:2px 6px;font-size:10px;font-weight:700;flex-shrink:0;font-family:var(--mono)\">%</span>";
+        html+="<div style=\"font-size:11px;color:var(--off-white);line-height:1.4\"><strong style=\"color:#c4b5fd\">Probability:</strong> Currently "+d.prob+"% but "+fc.forecastCode+" stage expects "+fc.probRange[0]+"–"+fc.probRange[1]+"%. Update in Dynamics.</div>";
+        html+="</div>";
+      }
+      html+="</div>";
+    } else {
+      html+="<div style=\"margin-top:12px;padding:8px 12px;background:rgba(99,223,78,.06);border:1px solid rgba(99,223,78,.2);border-radius:8px;font-size:11px;color:var(--wasabi)\">✅ All NowSell milestones are aligned for this stage. Monitor close date and confirm EB engagement is current.</div>";
+    }
+    html+="<div style=\"margin-top:10px\"><a class=\"cd-crm-link\" href=\""+_crm(d.num)+"\" target=\"_blank\">🔗 Open in Dynamics CRM ↗</a></div>";
+    html+="</div>";
+  } else if(tab==="ns"){
+    html+="<div id=\"modal-pane-ns\">";
+    if(fc.probMismatch){
+      html+="<div style=\"padding:10px 12px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.3);border-radius:8px;margin-bottom:12px\">";
+      html+="<div style=\"font-size:11px;font-weight:700;color:#c4b5fd;margin-bottom:4px\">⚡ Probability Mismatch</div>";
+      html+="<div style=\"font-size:11px;color:var(--off-white);line-height:1.5\">This deal is at <strong style=\"color:#c4b5fd\">"+d.prob+"%</strong> probability, but <strong>"+fc.forecastCode+"</strong> NowSell stage expects <strong style=\"color:#c4b5fd\">"+fc.probRange[0]+"–"+fc.probRange[1]+"%</strong>.</div>";
+      html+="<div style=\"margin-top:6px;font-size:11px;color:var(--mid)\">→ <strong style=\"color:var(--off-white)\">In Dynamics:</strong> Open the opportunity record → edit Stage or Probability to align with actual deal position.</div>";
+      html+="</div>";
+    }
+    MKEYS.forEach(function(mk){
+      var mv=ns[mk]||"r";
+      var meta=NOWSELL_META[mk];
+      var statusText=mv==="g"?meta.g:mv==="a"?meta.a:meta.r;
+      var col=mv==="g"?"var(--wasabi)":mv==="a"?"var(--amber)":"var(--red)";
+      var statusLbl=mv==="g"?"✅ Complete":mv==="a"?"⚠️ In Progress":"❌ Not Started";
+      var bgCol=mv==="g"?"rgba(99,223,78,.04)":mv==="a"?"rgba(245,166,35,.04)":"rgba(232,57,77,.04)";
+      var borderCol=mv==="g"?"rgba(99,223,78,.2)":mv==="a"?"rgba(245,166,35,.2)":"rgba(232,57,77,.2)";
+      html+="<div style=\"background:"+bgCol+";border:1px solid "+borderCol+";border-left:3px solid "+col+";border-radius:8px;padding:12px 14px;margin-bottom:10px\">";
+      html+="<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:6px\">";
+      html+="<span class=\"mc "+mv+"\">"+mk+"</span>";
+      html+="<span style=\"font-size:12px;font-weight:700;color:"+col+"\">"+meta.label+"</span>";
+      html+="<span style=\"margin-left:auto;font-size:10px;color:"+col+";font-weight:700\">"+statusLbl+"</span>";
+      html+="</div>";
+      html+="<div style=\"font-size:11px;color:var(--off-white);line-height:1.5;margin-bottom:8px\">"+statusText+"</div>";
+      if(mv!=="g"){
+        var steps=DYNAMICS_ACTIONS[mk]?DYNAMICS_ACTIONS[mk][mv]:[];
+        if(steps&&steps.length){
+          html+="<div style=\"border-top:1px solid "+borderCol+";padding-top:8px;margin-top:4px\">";
+          html+="<div style=\"font-size:10px;font-weight:700;color:#7bcfe8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px\">📋 How to update in Dynamics CRM</div>";
+          steps.forEach(function(step,i){
+            html+="<div style=\"display:flex;align-items:flex-start;gap:7px;margin-bottom:5px\">";
+            html+="<span style=\"background:rgba(123,207,232,.15);color:#7bcfe8;border:1px solid rgba(123,207,232,.3);border-radius:3px;padding:1px 6px;font-family:var(--mono);font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px\">"+(i+1)+"</span>";
+            html+="<span style=\"font-size:11px;color:var(--off-white);line-height:1.4\">"+step+"</span>";
+            html+="</div>";
+          });
+          html+="</div>";
+        }
+      }
+      html+="</div>";
+    });
+    html+="<div style=\"margin-top:6px\"><a class=\"cd-crm-link\" href=\""+_crm(d.num)+"\" target=\"_blank\">🔗 Open in Dynamics CRM ↗</a></div>";
+    html+="</div>";
+  } else if(tab==="coach"){
+    html+="<div id=\"modal-pane-coach\">";
+    html+="<div style=\"font-size:12px;color:var(--mid);margin-bottom:14px;line-height:1.5\">Manager coaching questions and 1-on-1 conversation starters for this deal.</div>";
+    var hasGap=false;
+    MKEYS.forEach(function(mk){
+      var mv=ns[mk]||"r";
+      var coach=MANAGER_COACH[mk];
+      var coachText=mv==="g"?coach.g:mv==="a"?coach.a:coach.r;
+      var col=mv==="g"?"var(--wasabi)":mv==="a"?"var(--amber)":"var(--red)";
+      var bgCol=mv==="g"?"rgba(99,223,78,.04)":"rgba(0,0,0,.18)";
+      var borderCol=mv==="g"?"rgba(99,223,78,.2)":mv==="a"?"rgba(245,166,35,.25)":"rgba(232,57,77,.25)";
+      if(mv!=="g")hasGap=true;
+      html+="<div style=\"background:"+bgCol+";border:1px solid "+borderCol+";border-left:3px solid "+col+";border-radius:8px;padding:12px 14px;margin-bottom:8px\">";
+      html+="<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:7px\">";
+      html+="<span class=\"mc "+mv+"\">"+mk+"</span>";
+      html+="<span style=\"font-size:12px;font-weight:700;color:"+col+"\">"+NOWSELL_META[mk].label+"</span>";
+      html+="</div>";
+      html+="<div style=\"font-size:12px;color:var(--off-white);line-height:1.6\">"+coachText+"</div>";
+      if(mv!=="g"){
+        var steps=DYNAMICS_ACTIONS[mk]?DYNAMICS_ACTIONS[mk][mv]:[];
+        if(steps&&steps.length){
+          html+="<div style=\"margin-top:8px;padding-top:8px;border-top:1px solid "+borderCol+"\">";
+          html+="<div style=\"font-size:10px;font-weight:700;color:#7bcfe8;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px\">📋 AE action in Dynamics</div>";
+          html+="<div style=\"font-size:11px;color:var(--mid);line-height:1.4\">"+steps[0]+(steps[1]?" → "+steps[1]:"")+"</div>";
+          html+="</div>";
+        }
+      }
+      html+="</div>";
+    });
+    if(fc.probMismatch){
+      html+="<div style=\"background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.3);border-left:3px solid #c4b5fd;border-radius:8px;padding:12px 14px;margin-bottom:8px\">";
+      html+="<div style=\"font-size:12px;font-weight:700;color:#c4b5fd;margin-bottom:6px\">~ Probability Mismatch</div>";
+      html+="<div style=\"font-size:12px;color:var(--off-white);line-height:1.6\">Deal is at <strong>"+d.prob+"%</strong> but <strong>"+fc.forecastCode+"</strong> stage expects <strong>"+fc.probRange[0]+"–"+fc.probRange[1]+"%</strong>. Ask AE: Does the stage accurately reflect the deal position?</div>";
+      html+="</div>";
+    }
+    if(!hasGap&&!fc.probMismatch){
+      html+="<div style=\"padding:12px;background:rgba(99,223,78,.06);border:1px solid rgba(99,223,78,.2);border-radius:8px;font-size:12px;color:var(--wasabi);line-height:1.5\">✅ All milestones complete and probability aligned. Confirm close date accuracy, verify no procurement blockers, and ensure EB is still committed.</div>";
+    }
+    html+="<div style=\"margin-top:10px\"><a class=\"cd-crm-link\" href=\""+_crm(d.num)+"\" target=\"_blank\">🔗 Open in Dynamics CRM ↗</a></div>";
+    html+="</div>";
+  }
+  body.innerHTML=html;
+}
+
+// ── Hygiene modal ─────────────────────────────────────────────────────────────
+function _hgModal(num){openHygieneModal(num);}
+function openHygieneModal(num,startTab){
+  var d=PIPE_Q1.filter(function(x){return x.num===num;})[0];
+  if(!d)return;
+  d._ns=d._ns||_nowsellScore(d);
+  d._fc=d._fc||_getForecastCheck(d);
+  var ns=d._ns;var fc=d._fc;
+  var body=document.getElementById("hg-body");
+  if(!body)return;
+  var html="";
+  // ── gapMks = ALL non-green milestones — must match the badge colours on the pipeline row ──
+  // Stage-gate missingOpen/missingClosed only covers required fields for the current stage.
+  // The hygiene modal must coach on EVERY milestone that is red or amber, not just required ones.
+  var gapMks=MKEYS.filter(function(mk){return (ns[mk]||"r")!=="g";});
+  // Classify each: red (not started) vs amber (in progress)
+  var redMks=MKEYS.filter(function(mk){return (ns[mk]||"r")==="r";});
+  var ambMks=MKEYS.filter(function(mk){return (ns[mk]||"r")==="a";});
+  var allClean=!fc.probMismatch&&!gapMks.length;
+  // Stage-gate required gaps (for "Must be Opened / Must be Complete" labels)
+  var stageRequired=(fc.missingOpen||[]).concat(fc.missingClosed||[]);
+
+  // ── Header ─────────────────────────────────────────────────────────────────
+  html+="<div style=\"margin-bottom:14px\">";
+  html+="<div style=\"font-size:15px;font-weight:700;color:var(--white);margin-bottom:3px\">"+(d.name&&d.name!==d.num?d.name:d.account)+"</div>";
+  html+="<div style=\"font-size:11px;color:var(--mid)\">"+d.num+" · "+(d.ae||"Unassigned")+" · "+d.stage+"</div>";
+  // Overall status badge — colour matches worst milestone
+  var badgeCls=redMks.length?"background:rgba(232,57,77,.12);color:var(--red);border:1px solid rgba(232,57,77,.35)":ambMks.length?"background:rgba(245,166,35,.1);color:var(--amber);border:1px solid rgba(245,166,35,.3)":"background:rgba(99,223,78,.12);color:var(--wasabi);border:1px solid rgba(99,223,78,.35)";
+  var badgeLabel=allClean?"✅ Forecast Clean":(redMks.length?" ❌ "+redMks.length+" Not Started"+(ambMks.length?" · ⚠️ "+ambMks.length+" In Progress":""):" ⚠️ "+ambMks.length+" In Progress")+(fc.probMismatch?" + Prob Mismatch":"");
+  html+="<div style=\"margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap\">";
+  html+="<span style=\"font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;"+badgeCls+"\">"+badgeLabel+"</span>";
+  html+="<span style=\"font-size:10px;color:var(--mid)\">"+(d.prob)+"% probability · Close "+d.closeDate+(typeof d.dtc==="number"?" · "+(d.dtc<=0?"OVERDUE":d.dtc+"d remaining"):"")+"</span>";
+  html+="</div>";
+  html+="</div>";
+
+  // ── Probability mismatch banner ─────────────────────────────────────────────
+  if(fc.probMismatch){
+    html+="<div class=\"hygiene-section\" style=\"border-color:rgba(167,139,250,.3);margin-bottom:12px\">";
+    html+="<div class=\"hygiene-section-label\" style=\"color:#c4b5fd\">⚡ Probability Mismatch</div>";
+    html+="<div class=\"hygiene-step\"><span class=\"hygiene-step-num\">!</span>";
+    html+="<span>Deal is at <strong style=\"color:#c4b5fd\">"+d.prob+"%</strong> probability, but <strong>"+fc.forecastCode+"</strong> stage expects <strong style=\"color:#c4b5fd\">"+fc.probRange[0]+"–"+fc.probRange[1]+"%</strong>.</span></div>";
+    html+="<div style=\"font-size:11px;color:var(--mid);margin-top:6px;padding-left:32px\">→ <strong style=\"color:var(--off-white)\">In Dynamics:</strong> Open the opportunity record → edit Stage or Probability to align with actual deal position. Current stage: <strong style=\"color:var(--off-white)\">"+d.stage+"</strong></div>";
+    html+="</div>";
+  }
+
+  // ── All 6 NowSell milestones — gaps get full coaching, complete get green confirmation ──
+  if(gapMks.length){
+    html+="<div class=\"hygiene-section\" style=\"margin-bottom:0\">";
+    html+="<div class=\"hygiene-section-label\" style=\"color:"+(redMks.length?"var(--red)":"var(--amber)")+"\">△ NowSell Coaching Required</div>";
+  }
+  MKEYS.forEach(function(mk){
+    var meta=NOWSELL_META[mk];
+    var mv=ns[mk]||"r";
+    var isGap=gapMks.indexOf(mk)>=0;
+    var isStageRequired=stageRequired.indexOf(mk)>=0;
+    var isClosedGap=(fc.missingClosed||[]).indexOf(mk)>=0;
+    if(isGap){
+      // ── GAP milestone: full coaching block — colour matches badge ──────────
+      var borderCol=mv==="r"?"rgba(232,57,77,.3)":"rgba(245,166,35,.3)";
+      var labelColor=mv==="r"?"var(--red)":"var(--amber)";
+      var statusIcon=mv==="r"?"❌":"⚠️";
+      var statusLabel=mv==="r"?"Not Started":"In Progress";
+      if(isStageRequired) statusLabel=isClosedGap?"Must be Complete":"Must be Opened";
+      html+="<div style=\"margin-bottom:14px;padding:12px 14px;background:rgba(0,0,0,.18);border:1px solid "+borderCol+";border-left:3px solid "+labelColor+";border-radius:8px\">";
+      // Milestone header row
+      html+="<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:8px\">";
+      html+="<span class=\"mc "+mv+"\">"+mk+"</span>";
+      html+="<span style=\"font-size:13px;font-weight:700;color:"+labelColor+"\">"+meta.label+"</span>";
+      html+="<span style=\"margin-left:auto;font-size:10px;font-weight:700;color:"+labelColor+";padding:2px 8px;border-radius:8px;border:1px solid "+borderCol+"\">"+statusIcon+" "+statusLabel+"</span>";
+      html+="</div>";
+      // Status description
+      var statusText=(mv==="a"?meta.a:meta.r)||"";
+      html+="<div style=\"font-size:12px;color:var(--off-white);line-height:1.5;margin-bottom:10px\">"+statusText+"</div>";
+      // Manager Ask the AE
+      html+="<div style=\"font-size:11px;font-weight:700;color:#7bcfe8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px\">Manager — Ask the AE</div>";
+      var coachText=(mv==="a"?MANAGER_COACH[mk].a:MANAGER_COACH[mk].r)||"";
+      html+="<div style=\"font-size:12px;color:var(--off-white);line-height:1.6;margin-bottom:10px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:6px;font-style:italic\">"+coachText+"</div>";
+      // Discovery Probes
+      if(meta.probes&&meta.probes.length){
+        html+="<div style=\"font-size:11px;font-weight:700;color:var(--wasabi);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px\">Discovery Probes</div>";
+        html+="<ul style=\"padding-left:16px;margin-bottom:10px;margin-top:0\">";
+        meta.probes.forEach(function(p){html+="<li style=\"font-size:11px;color:var(--off-white);margin-bottom:4px;line-height:1.5\">"+p+"</li>";});
+        html+="</ul>";
+      }
+      // Update in Dynamics CRM
+      if(meta.crm&&meta.crm.length){
+        html+="<div style=\"font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px\">Update in Dynamics CRM</div>";
+        html+="<ul style=\"padding-left:16px;margin:0\">";
+        meta.crm.forEach(function(c){html+="<li style=\"font-size:11px;color:var(--off-white);margin-bottom:4px;line-height:1.5\">"+c+"</li>";});
+        html+="</ul>";
+      }
+      html+="</div>";
+    } else {
+      // ── COMPLETE milestone: compact green confirmation row ──────────────────
+      html+="<div style=\"display:flex;align-items:center;gap:8px;padding:7px 10px;margin-bottom:6px;background:rgba(99,223,78,.04);border:1px solid rgba(99,223,78,.15);border-radius:6px\">";
+      html+="<span class=\"mc g\" style=\"flex-shrink:0\">"+mk+"</span>";
+      html+="<span style=\"font-size:12px;font-weight:600;color:var(--wasabi)\">"+meta.label+"</span>";
+      html+="<span style=\"font-size:10px;font-weight:700;color:var(--wasabi);margin-left:auto\">✅ Complete</span>";
+      html+="</div>";
+    }
+  });
+  if(gapMks.length){html+="</div>";}
+
+  // ── All clean summary ───────────────────────────────────────────────────────
+  if(allClean){
+    html+="<div class=\"hygiene-section\" style=\"border-color:rgba(99,223,78,.25);margin-top:12px\">";
+    html+="<div style=\"font-size:13px;font-weight:700;color:var(--wasabi);margin-bottom:6px\">✅ Forecast Hygiene Clean</div>";
+    html+="<div style=\"font-size:12px;color:var(--off-white);line-height:1.6\">All 6 NowSell milestones are aligned for this stage and probability is correct.</div>";
+    html+="<div style=\"font-size:11px;color:var(--mid);margin-top:8px;line-height:1.5\">Recommended: Confirm close date accuracy with AE in next 1:1. Verify EB is still committed and no procurement blockers have emerged. Confirm Order Form is on track for SURF submission.</div>";
+    html+="</div>";
+  }
+
+  html+="<div style=\"margin-top:12px\"><a class=\"cd-crm-link\" href=\""+_crm(d.num)+"\" target=\"_blank\">🔗 Open "+d.num+" in Dynamics CRM ↗</a></div>";
+  body.innerHTML=html;
+  document.getElementById("hg-overlay").classList.add("open");
+}
+function closeHygieneModal(){document.getElementById("hg-overlay").classList.remove("open");}
+
+// ── AE modal ──────────────────────────────────────────────────────────────────
+function openAEModal(rank){
+  var sorted=AE_DATA.slice().sort(function(a,b){return (b.won||0)-(a.won||0);});
+  var ae=sorted[rank];
+  if(!ae)return;
+  var titleEl=document.getElementById("ae-modal-title");
+  var subEl=document.getElementById("ae-modal-sub");
+  var avatarEl=document.getElementById("ae-modal-avatar");
+  var statsEl=document.getElementById("ae-modal-stats");
+  var bodyEl=document.getElementById("ae-modal-body");
+  if(titleEl)titleEl.textContent=ae.n;
+  if(subEl)subEl.textContent=(ae.terr||"")+" · "+(ae.dist||"");
+  if(avatarEl){
+    var initials=(ae.init||(ae.n||"AE").split(" ").map(function(p){return p[0];}).join("").substring(0,2)).toUpperCase();
+    var riskBg=ae.risk==="R"?"rgba(232,57,77,.3)":ae.risk==="A"?"rgba(245,166,35,.25)":"rgba(99,223,78,.2)";
+    var riskFg=ae.risk==="R"?"var(--red)":ae.risk==="A"?"var(--amber)":"var(--wasabi)";
+    avatarEl.style.background=riskBg;avatarEl.style.color=riskFg;avatarEl.textContent=initials;
+  }
+  if(statsEl){
+    statsEl.innerHTML="<div class=\"ae-modal-stat\"><div class=\"ae-modal-stat-val "+(ae.won<0?"a":"")+"\">"+_fmt(ae.won)+"</div><div class=\"ae-modal-stat-lbl\">Won</div></div>"
+      +"<div class=\"ae-modal-stat\"><div class=\"ae-modal-stat-val\">"+_fmt(ae.pipe)+"</div><div class=\"ae-modal-stat-lbl\">Pipeline</div></div>"
+      +"<div class=\"ae-modal-stat\" title=\"Weighted pipeline = positive deals × stage probability\"><div class=\"ae-modal-stat-val\">"+_fmt(_wtdForAE(ae.n))+"</div><div class=\"ae-modal-stat-lbl\">Wtd Pipe</div></div>"
+      +"<div class=\"ae-modal-stat\"><div class=\"ae-modal-stat-val\">"+(ae.deals||0)+"</div><div class=\"ae-modal-stat-lbl\">Open Deals</div></div>";
+  }
+  if(bodyEl){
+    var aeDeals=PIPE_Q1.filter(function(d){return d.ae===ae.n;}).sort(function(a,b){return (b.nnacv||0)-(a.nnacv||0);});
+    var html="<div id=\"ae-pane-deals\">";
+    if(!aeDeals.length){html+="<div style=\"color:var(--mid);font-size:12px;padding:14px\">No open deals this quarter.</div>";}
+    aeDeals.forEach(function(d,di){
+      var ns=d._ns||_nowsellScore(d);
+      var dealTitle=(d.name&&d.name!==d.account&&d.name!==d.num)?d.name:d.account;
+      var nc=(d.nnacv||0)<0?"nnacv-neg":"nnacv-pos";
+      html+="<div class=\"ae-deal-card\" id=\"aedc-"+di+"\">";
+      html+="<div class=\"ae-deal-card-hdr\" onclick=\"toggleAEDealCard('aedealBody-"+di+"','aedc-"+di+"')\">";
+      html+="<div style=\"flex:1\"><div style=\"font-weight:600;font-size:12px\">"+dealTitle+"</div><div style=\"font-size:10px;color:var(--mid);font-family:var(--mono)\">"+d.num+" · "+d.stage+"</div></div>";
+      html+="<span class=\""+nc+"\" style=\"font-size:12px;font-weight:700;margin-right:8px\">"+_fmt(d.nnacv)+"</span>";
+      html+="<span style=\"font-size:11px;padding:2px 7px;border-radius:8px;background:rgba(99,223,78,.1);color:var(--wasabi)\">"+d.prob+"%</span>";
+      html+="</div>";
+      html+="<div class=\"ae-deal-card-body\" id=\"aedealBody-"+di+"\">";
+      html+="<div class=\"ae-deal-coach-tabs\">";
+      html+="<div class=\"ae-deal-coach-tab active\" id=\"aetab-s-"+di+"\" onclick=\"switchAEDealTab("+di+",'status')\">📊 Status</div>";
+      html+="<div class=\"ae-deal-coach-tab\" id=\"aetab-m-"+di+"\" onclick=\"event.stopPropagation();switchAEDealTab("+di+",'manager')\">👔 Manager</div>";
+      html+="<div class=\"ae-deal-coach-tab\" id=\"aetab-n-"+di+"\" onclick=\"event.stopPropagation();switchAEDealTab("+di+",'nowsell')\">🎯 NowSell</div>";
+      html+="</div>";
+      html+="<div class=\"ae-deal-coach-pane active\" id=\"aepane-status-"+di+"\">";
+      var nsCells2="";
+      MKEYS.forEach(function(mk){
+        var mv=ns[mk]||"r";
+        nsCells2+="<span class=\"ns-badge mc "+mv+"\" onclick=\"event.stopPropagation();openHygieneModal('"+d.num+"')\" title=\""+mk+"\">"+(mv==="g"?"✅":"⚠️")+" "+mk+"</span>";
+      });
+      html+="<div class=\"ae-deal-ns-row\">"+nsCells2+"</div>";
+      html+="<div style=\"margin-top:8px;font-size:11px;color:var(--mid)\">Stage: <span style=\"color:var(--off-white)\">"+d.stage+"</span> · Close: <span style=\"color:var(--off-white)\">"+d.closeDate+"</span></div>";
+      html+="<div style=\"margin-top:8px\"><a class=\"act-btn crm-btn\" href=\""+_crm(d.num)+"\" target=\"_blank\" style=\"font-size:10px;padding:3px 9px;display:inline-block\">🔗 CRM ↗</a>";
+      html+="<button onclick=\"event.stopPropagation();openModal('"+d.num+"','coach')\" style=\"margin-left:6px;padding:3px 9px;font-size:10px;font-weight:700;border:1px solid #7bcfe8;background:rgba(123,207,232,.1);color:#7bcfe8;border-radius:4px;cursor:pointer\">👔 Coach</button></div>";
+      html+="</div>";
+      html+="<div class=\"ae-deal-coach-pane\" id=\"aepane-manager-"+di+"\">";
+      MKEYS.forEach(function(mk){
+        var mv=ns[mk]||"r";
+        if(mv==="g")return;
+        var coach=MANAGER_COACH[mk];
+        html+="<div style=\"margin-bottom:10px;padding:8px 10px;background:rgba(232,57,77,.04);border:1px solid rgba(232,57,77,.15);border-radius:6px\">";
+        html+="<div style=\"font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;margin-bottom:4px\">"+mk+" — "+NOWSELL_META[mk].label+"</div>";
+        html+="<div style=\"font-size:11px;color:var(--off-white);line-height:1.5\">"+coach.r+"</div>";
+        html+="</div>";
+      });
+      html+="</div>";
+      html+="<div class=\"ae-deal-coach-pane\" id=\"aepane-nowsell-"+di+"\">";
+      MKEYS.forEach(function(mk){
+        var mv=ns[mk]||"r";
+        var col=mv==="g"?"var(--wasabi)":mv==="a"?"var(--amber)":"var(--red)";
+        html+="<div style=\"display:flex;align-items:center;gap:6px;margin-bottom:6px\">";
+        html+="<span class=\"mc "+mv+"\">"+mk+"</span>";
+        html+="<span style=\"font-size:11px;color:"+col+";font-weight:700\">"+NOWSELL_META[mk].label+"</span>";
+        html+="<span style=\"font-size:11px;color:var(--mid)\">— "+(mv==="g"?NOWSELL_META[mk].g:mv==="a"?NOWSELL_META[mk].a:NOWSELL_META[mk].r)+"</span>";
+        html+="</div>";
+      });
+      html+="</div>";
+      html+="</div></div>";
+    });
+    html+="</div>";
+    bodyEl.innerHTML=html;
+  }
+  document.getElementById("aeModal").classList.add("open");
+}
+function closeAEModal(){document.getElementById("aeModal").classList.remove("open");}
+function switchAETab(tab){
+  ["deals"].forEach(function(t){
+    var pane=document.getElementById("ae-pane-"+t);
+    var tabEl=document.getElementById("aetab-"+t);
+    if(pane)pane.style.display=(t===tab)?"block":"none";
+    if(tabEl)tabEl.classList.toggle("active",t===tab);
+  });
+}
+function switchAEDealTab(idx,tab){
+  var paneNames=["status","manager","nowsell"];
+  var tabKeys=["s","m","n"];
+  paneNames.forEach(function(name,i){
+    var pane=document.getElementById("aepane-"+name+"-"+idx);
+    var tabEl=document.getElementById("aetab-"+tabKeys[i]+"-"+idx);
+    var isActive=(name===tab);
+    if(pane)pane.classList.toggle("active",isActive);
+    if(tabEl)tabEl.classList.toggle("active",isActive);
+  });
+}
+function toggleAEDealCard(bodyId,cardId){
+  var body=document.getElementById(bodyId);
+  var card=document.getElementById(cardId);
+  if(body)body.classList.toggle("open");
+  if(card)card.classList.toggle("open");
+}
+
+// ── Badge coaching popover ────────────────────────────────────────────────────
+function openBadgeCoach(type,rank){
+  var sorted=AE_DATA.slice().sort(function(a,b){return (b.won||0)-(a.won||0);});
+  var ae=sorted[rank];
+  if(!ae)return;
+  var bcBody=document.getElementById("bcBody");
+  if(!bcBody)return;
+  var title="",text="",actions=[];
+  if(type==="cov"){title="📊 Pipeline Coverage";text=ae.covReason||"";actions=ae.covActions||[];}
+  else if(type==="pace"){title="⏱ QTD Pacing";text=ae.paceReason||"";actions=ae.paceActions||[];}
+  else if(type==="rag"){title="🚦 Overall Risk";text=ae.riskReason||"";actions=ae.riskActions||[];}
+  var html="<div style=\"font-size:14px;font-weight:700;color:var(--wasabi);margin-bottom:10px\">"+title+"</div>";
+  html+="<div style=\"font-size:12px;color:var(--off-white);line-height:1.6;margin-bottom:12px\">"+ae.n+" — "+text+"</div>";
+  actions.forEach(function(a){html+="<div class=\"coach-action-item\">"+a+"</div>";});
+  html+="<div style=\"margin-top:12px;border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:flex-end\">";
+  html+="<button onclick=\"closeBadgeCoach()\" style=\"padding:6px 16px;background:var(--dark-teal);border:1px solid var(--border);color:var(--mid);border-radius:6px;cursor:pointer;font-size:12px\">Close</button>";
+  html+="</div>";
+  bcBody.innerHTML=html;
+  document.getElementById("bcOverlay").classList.add("open");
+}
+function closeBadgeCoach(){document.getElementById("bcOverlay").classList.remove("open");}
+
+// ── Days-to-close popover ─────────────────────────────────────────────────────
+function _closeDtcPop(){var p=document.getElementById("dtc-popover");if(p)p.remove();}
+function showDtcExplainer(btn,dtc,closeDate){
+  var existing=document.getElementById("dtc-popover");
+  if(existing){if(existing._sourceBtn===btn){existing.remove();return;}existing.remove();}
+  var urgColor=dtc<=7?"var(--red)":dtc<=14?"var(--amber)":"var(--wasabi)";
+  var urgency=dtc<=0?"🔴 OVERDUE — immediate action required.":dtc<=7?"🔴 Critical — close imminent. Action today.":dtc<=14?"🟡 Urgent — less than two weeks. Escalate coaching.":"🟢 Normal — healthy runway remaining.";
+  var pop=document.createElement("div");
+  pop.id="dtc-popover";pop._sourceBtn=btn;
+  pop.style.cssText="position:fixed;z-index:600;background:var(--drawer-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;width:300px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-size:12px;line-height:1.5";
+  pop.innerHTML="<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:10px'>"
+    +"<span style='font-size:13px;font-weight:700;color:var(--wasabi)'>⏱ Days to Close</span>"
+    +"<button onclick='_closeDtcPop()' style='background:none;border:none;color:var(--mid);cursor:pointer;font-size:16px;line-height:1'>✕</button>"
+    +"</div>"
+    +"<div style='margin-bottom:8px'><span style='font-size:22px;font-weight:700;color:"+urgColor+"'>"+(dtc<=0?"OVERDUE":dtc+"d")+"</span>"
+    +" <span style='font-size:11px;color:var(--mid)'>until "+closeDate+"</span></div>"
+    +"<div style='font-size:12px;color:"+urgColor+";font-weight:600;margin-bottom:10px'>"+urgency+"</div>"
+    +"<div style='border-top:1px solid var(--border);padding-top:10px'>"
+    +"<div style='font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px'>Colour Guide</div>"
+    +"<div style='display:flex;flex-direction:column;gap:4px'>"
+    +"<div style='display:flex;align-items:center;gap:8px'><span style='width:32px;text-align:center;font-size:10px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(232,57,77,.2);color:var(--red);border:1px solid var(--red)'>7d</span><span style='font-size:11px;color:var(--off-white)'>🔴 ≤7 days — Critical</span></div>"
+    +"<div style='display:flex;align-items:center;gap:8px'><span style='width:32px;text-align:center;font-size:10px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(245,166,35,.2);color:var(--amber);border:1px solid var(--amber)'>14d</span><span style='font-size:11px;color:var(--off-white)'>🟡 ≤14 days — Urgent</span></div>"
+    +"<div style='display:flex;align-items:center;gap:8px'><span style='width:32px;text-align:center;font-size:10px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(99,223,78,.12);color:var(--wasabi);border:1px solid var(--wasabi)'>+d</span><span style='font-size:11px;color:var(--off-white)'>🟢 >14 days — Normal</span></div>"
+    +"</div></div>";
+  document.body.appendChild(pop);
+  var rect=btn.getBoundingClientRect();
+  var top=rect.bottom+6;var left=rect.left;
+  if(left+300>window.innerWidth)left=window.innerWidth-310;
+  if(top+220>window.innerHeight)top=rect.top-226;
+  pop.style.top=top+"px";pop.style.left=left+"px";
+  setTimeout(function(){
+    document.addEventListener("click",function handler(e){
+      var p=document.getElementById("dtc-popover");
+      if(p&&!p.contains(e.target)&&e.target!==btn){p.remove();document.removeEventListener("click",handler);}
+    });
+  },10);
+}
+
+// ── Forward quarter report ────────────────────────────────────────────────────
+function runQtrReport(q){
+  var meta=_QTR_META[q];
+  if(!meta)return;
+  var btn=document.getElementById("btn-"+q);
+  var stat=document.getElementById("status-"+q);
+  var resultsDiv=document.getElementById(q+"-results");
+  if(btn){btn.disabled=true;btn.classList.add("loading");var bt=btn.querySelector(".btn-txt");if(bt)bt.textContent="Preparing...";}
+  var trigger=meta.trigger||("my pipeline "+meta.label);
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(trigger).then(function(){showQtrInstructions(q,trigger,btn,stat,resultsDiv);}).catch(function(){showQtrInstructions(q,trigger,btn,stat,resultsDiv);});
+  } else {
+    showQtrInstructions(q,trigger,btn,stat,resultsDiv);
+  }
+}
+function showQtrInstructions(q,trigger,btn,stat,resultsDiv){
+  var meta=_QTR_META[q];var stats=_QTR_STATS[q];
+  if(resultsDiv){
+    resultsDiv.style.display="block";
+    resultsDiv.innerHTML="<div style=\"background:var(--card-bg);border:1.5px solid var(--wasabi);border-radius:12px;padding:24px;max-width:520px;margin:0 auto;text-align:center\">"
+      +"<div style=\"font-size:24px;margin-bottom:12px\">📋</div>"
+      +"<div style=\"font-size:16px;font-weight:700;color:var(--white);margin-bottom:6px\">"+(meta.label||q.toUpperCase())+" Report</div>"
+      +"<div style=\"font-size:12px;color:var(--mid);margin-bottom:16px\">"+(stats&&stats.pipe?stats.pipe+" · ":"")+(meta.months||"")+"</div>"
+      +"<div style=\"background:var(--inf-blue);border:1.5px solid var(--wasabi);border-radius:8px;padding:12px 16px;margin-bottom:16px\">"
+      +"<div style=\"font-size:10px;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px\">Paste into a new Claude chat:</div>"
+      +"<div style=\"font-size:14px;font-weight:700;color:var(--wasabi);font-family:var(--mono)\">"+trigger+"</div>"
+      +"</div>"
+      +"<div style=\"display:flex;gap:10px;justify-content:center;flex-wrap:wrap\">"
+      +"<button class=\"act-btn\" style=\"padding:8px 16px;font-size:12px\" onclick=\"copyTrigger('"+trigger+"',this)\">📋 Copy Trigger</button>"
+      +"<a href=\"https://claude.ai\" target=\"_blank\" class=\"act-btn crm-btn\" style=\"padding:8px 16px;font-size:12px\">Open New Claude Chat ↗</a>"
+      +"</div></div>";
+  }
+  if(btn){btn.disabled=false;btn.classList.remove("loading");var bt=btn.querySelector(".btn-txt");if(bt)bt.textContent="▶ Run "+(meta.label||q.toUpperCase())+" Pipeline Report";}
+  if(stat)stat.textContent="Trigger ready — paste into Claude chat";
+}
+function copyTrigger(trigger,btn){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(trigger).then(function(){if(btn)btn.textContent="✅ Copied!";setTimeout(function(){if(btn)btn.textContent="📋 Copy Trigger";},2000);});
+  }
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(tab){
+  ["q1","q2","q3","q4","ae","coach","war"].forEach(function(t){
+    var pane=document.getElementById("pane-"+t);
+    var tabEl=document.getElementById("tab-"+t);
+    if(pane)pane.style.display=(t===tab)?"block":"none";
+    if(tabEl)tabEl.classList.toggle("active",t===tab);
+  });
+}
+
+// ── War Room ──────────────────────────────────────────────────────────────────
+var _synth=window.speechSynthesis;
+var _utt=null;
+function playWR(){
+  stopWR();
+  var txt=document.getElementById("wrText").textContent;
+  _utt=new SpeechSynthesisUtterance(txt);
+  _utt.rate=0.95;_utt.pitch=1;
+  _utt.onend=function(){document.getElementById("wr-status").textContent="Briefing complete.";};
+  _synth.speak(_utt);
+  document.getElementById("wr-status").textContent="▶ Playing briefing...";
+}
+function stopWR(){if(_synth)_synth.cancel();var s=document.getElementById("wr-status");if(s)s.textContent="Stopped.";}
+
+// ── DOMContentLoaded ──────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded",function(){
+  // Pre-compute NowSell scores and forecast checks
+  PIPE_Q1.forEach(function(d){d._ns=d.nowsell||_nowsellScore(d);d._fc=_getForecastCheck(d);});
+
+  // Render all sections
+  renderHygiene();
+  renderPipe();
+  renderWon();
+  renderAE();
+  renderCoach();
+
+  // CQ stat card
+  var _totalPipe=PIPE_Q1.reduce(function(a,d){return a+(d.nnacv||0);},0);
+  var _totalDeals=PIPE_Q1.length;
+  var _cqLabel=_QTR_META.q1Label||"CQ";
+  var sp=document.getElementById("s-pipe");
+  if(sp){sp.textContent=_fmt(_totalPipe);sp.className=_totalPipe<0?"sc-val a":"sc-val";}
+  var spSub=document.getElementById("s-pipe-sub");
+  if(spSub)spSub.textContent=_totalDeals+" deals · net NNACV · "+_cqLabel;
+  var pt=document.getElementById("pipe-section-title");
+  if(pt)pt.textContent=_cqLabel+" Open Pipeline — "+_totalDeals+" Deals · Net "+_fmt(_totalPipe)+" · Grouped by Close Month";
+
+  // Header badges from _QTR_META
+  var hd=document.getElementById("hdr-days");
+  if(hd){
+    var eqMap={"Q1":"03-31","Q2":"06-30","Q3":"09-30","Q4":"12-31"};
+    var labelMatch=(_cqLabel||"").match(/Q(\d)\s+FY(\d{4})/);
+    if(labelMatch){
+      var eqKey="Q"+labelMatch[1];var eqYear=labelMatch[2];
+      var eqDate=new Date(eqYear+"-"+eqMap[eqKey]);var todayDate=new Date();
+      var daysLeft=Math.ceil((eqDate-todayDate)/(1000*60*60*24));
+      if(daysLeft>0){hd.textContent=daysLeft+" days to EOQ";hd.className="bdg "+(daysLeft<=14?"red":daysLeft<=30?"amb":"grn");}
+      else{hd.textContent=_cqLabel+" closed";hd.className="bdg grn";}
+    } else {hd.textContent=_cqLabel;hd.className="bdg amb";}
+  }
+
+  // Territory badge
+  var terrBadge=document.getElementById("hdr-terr");
+  if(terrBadge&&_QTR_META.territory)terrBadge.textContent=_QTR_META.territory;
+
+  // Header sub and meta
+  var hdrSub=document.getElementById("hdr-sub");
+  if(hdrSub)hdrSub.textContent=(_QTR_META.territory||"Territory")+" | "+_cqLabel+" | NowSell Coaching Dashboard";
+  var hdrMeta=document.getElementById("hdr-meta");
+  if(hdrMeta){var now=new Date();hdrMeta.textContent="📅 As of "+now.toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"})+" | "+_cqLabel;}
+
+  // Tab labels
+  var t1=document.getElementById("tab-q1");if(t1)t1.textContent=_cqLabel;
+  var aet=document.getElementById("ae-rank-title");if(aet)aet.textContent="AE Stack Rank — "+_cqLabel;
+  var ct=document.getElementById("coach-title");if(ct)ct.textContent="Manager Coaching Actions — "+_cqLabel;
+  var wrt=document.getElementById("wr-title");if(wrt)wrt.textContent="🎙 War Room Briefing — "+(_QTR_META.territory||"Territory")+" "+_cqLabel;
+
+  // War Room text from data-driven SCRIPT
+  var wrEl=document.getElementById("wrText");
+  if(wrEl&&typeof SCRIPT!=="undefined"&&SCRIPT.length){
+    wrEl.textContent=SCRIPT.map(function(s){return s.text;}).join("\n\n");
+  }
+
+  // Forward quarter stat cards
+  ["q2","q3","q4"].forEach(function(qk){
+    var qs=_QTR_STATS[qk];if(!qs)return;
+    var meta=_QTR_META[qk];
+    var el=document.getElementById("s-"+qk);
+    var sub=document.getElementById("s-"+qk+"-sub");
+    var lbl=document.getElementById("sc-lbl-"+qk);
+    if(el)el.textContent=(qs.pipe&&qs.pipe!=="—")?qs.pipe:"—";
+    if(sub&&meta){var dealTxt=(qs.n&&qs.n!=="—")?(qs.n+" deals · "):"";sub.textContent=dealTxt+"net NNACV · "+(meta.months||"");}
+    if(lbl&&meta)lbl.innerHTML=(meta.label||qk.toUpperCase())+" Pipeline <span style=\"color:var(--wasabi);font-size:9px;margin-left:4px\">▶ RUN</span>";
+    var tabEl=document.getElementById("tab-"+qk);if(tabEl&&meta)tabEl.textContent=meta.label||qk.toUpperCase();
+    var pTitle=document.getElementById(qk+"-prompt-title");if(pTitle&&meta)pTitle.textContent=(meta.label||qk.toUpperCase())+" Pipeline Report";
+    var pMeta=document.getElementById(qk+"-prompt-meta");if(pMeta&&meta)pMeta.textContent=meta.months||meta.dates||"";
+    var pBtn=document.getElementById("btn-"+qk);if(pBtn&&meta){var bt=pBtn.querySelector(".btn-txt");if(bt)bt.textContent="▶ Run "+(meta.label||qk.toUpperCase())+" Pipeline Report";}
+    var pillPipe=document.getElementById(qk+"-pill-pipe");if(pillPipe)pillPipe.textContent=(qs.pipe&&qs.pipe!=="—")?qs.pipe:"—";
+    var pillN=document.getElementById(qk+"-pill-n");if(pillN)pillN.textContent=(qs.n&&qs.n!=="—")?qs.n:"—";
+  });
+
+  // Quota modal header sub
+  var qhs=document.getElementById("quota-hdr-sub");
+  if(qhs)qhs.textContent="Set AE quotas to update coverage calculations — "+_cqLabel;
+});
+
+document.getElementById("dealModal").addEventListener("click",function(e){if(e.target===this)closeModal();});
+document.getElementById("hg-overlay").addEventListener("click",function(e){if(e.target===this)closeHygieneModal();});
+document.getElementById("aeModal").addEventListener("click",function(e){if(e.target===this)closeAEModal();});
+</script>
+</body>
+</html>
+</script>
+</body>
+</html>

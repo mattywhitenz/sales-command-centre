@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ServiceNow Sales Command Centre</title>
+<style>
+:root{
+  --inf-blue:#032D42;
+  --dark-teal:#044355;
+  --wasabi:#63DF4E;
+  --wasabi-dim:#4ab83c;
+  --amber:#F5A623;
+  --red:#E8394D;
+  --green:#63DF4E;
+  --white:#fff;
+  --off-white:#f4f6f8;
+  --mid:#8ca0ad;
+  --border:#1a4a5c;
+  --card-bg:#05374d;
+  --drawer-bg:#031f2f;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+  --mono:'SF Mono','Consolas','Courier New',monospace;
+  --purple:#a78bfa;
+  --blue:#7bcfe8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--inf-blue);color:var(--white);font-family:var(--font);font-size:14px;min-height:100vh}
+.hdr{background:linear-gradient(135deg,var(--dark-teal),var(--inf-blue));padding:18px 24px;border-bottom:2px solid var(--wasabi);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.hdr-left{display:flex;flex-direction:column;gap:4px}
+.hdr-title{font-size:20px;font-weight:700;color:var(--wasabi);letter-spacing:.5px}
+.hdr-sub{font-size:12px;color:var(--mid)}
+.hdr-meta{font-size:11px;color:var(--mid);margin-top:2px}
+.hdr-badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.bdg{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.bdg.grn{background:rgba(99,223,78,.15);color:var(--wasabi);border:1px solid var(--wasabi)}
+.bdg.amb{background:rgba(245,166,35,.15);color:var(--amber);border:1px solid var(--amber)}
+.bdg.red{background:rgba(232,57,77,.15);color:var(--red);border:1px solid var(--red)}
+.bdg.inf{background:rgba(4,67,85,.6);color:#7bcfe8;border:1px solid #1a6c8a}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:16px 24px}
+.sc{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .2s}
+.sc:hover{border-color:var(--wasabi)}
+.sc-lbl{font-size:10px;color:var(--mid);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.sc-val{font-size:22px;font-weight:700;color:var(--wasabi)}
+.sc-val.a{color:var(--amber)}
+.sc-sub{font-size:10px;color:var(--mid);margin-top:4px}
+.tabs{display:flex;gap:0;padding:0 24px;border-bottom:1px solid var(--border)}
+.tab{padding:10px 20px;font-size:12px;font-weight:600;color:var(--mid);cursor:pointer;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.5px;transition:all .2s}
+.tab:hover{color:var(--white)}
+.tab.active{color:var(--wasabi);border-bottom-color:var(--wasabi)}
+.section{padding:20px 24px}
+.section-title{font-size:13px;font-weight:700;color:var(--wasabi);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--dark-teal);padding:10px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--mid);text-align:left;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(4,67,85,.5)}
+td{padding:9px 12px;font-size:12px;vertical-align:middle}
+.nnacv-pos{font-weight:700;color:var(--wasabi)}
+.nnacv-neg{font-weight:700;color:var(--red)}
+.nnacv-zero{color:var(--mid)}
+.dsell-flag{font-size:9px;font-weight:700;color:var(--red);background:rgba(232,57,77,.15);padding:1px 4px;border-radius:3px;border:1px solid rgba(232,57,77,.3)}
+.prob-chip{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.stage-bar{display:inline-block;height:3px;vertical-align:middle;border-radius:2px;margin-left:6px;background:var(--wasabi);opacity:.4}
+.ae-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.ae-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s}
+.ae-card:hover{border-color:var(--wasabi);transform:translateY(-1px)}
+.ae-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ae-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.ae-name{font-size:14px;font-weight:700;color:var(--white)}
+.ae-terr{font-size:10px;color:var(--mid);font-family:var(--mono);margin-top:2px}
+.ae-dist{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
+.ae-dist.str{background:rgba(99,223,78,.12);color:var(--wasabi);border:1px solid rgba(99,223,78,.3)}
+.ae-dist.ent{background:rgba(123,207,232,.1);color:#7bcfe8;border:1px solid rgba(123,207,232,.3)}
+.ae-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.ae-stat{text-align:center;background:rgba(0,0,0,.15);border-radius:8px;padding:8px 6px}
+.ae-stat-val{font-size:15px;font-weight:700;color:var(--wasabi)}
+.ae-stat-val.a{color:var(--amber)}
+.ae-stat-lbl{font-size:9px;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.ae-badge-btn{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid currentColor;background:transparent;transition:opacity .15s;font-family:var(--mono)}
+.ae-badge-btn:hover{opacity:.8}
+.ae-badge-btn.red{color:var(--red)}
+.ae-badge-btn.amb{color:var(--amber)}
+.ae-badge-btn.grn{color:var(--wasabi)}
+.ae-ds-tile{background:rgba(232,57,77,.07);border:1px solid rgba(232,57,77,.2);border-radius:6px;padding:6px 10px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ae-ds-label{font-size:9px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px}
+.ae-ds-val{font-size:13px;font-weight:700;color:var(--red)}
+.ae-ds-note{font-size:10px;color:var(--mid);line-height:1.3}
+.ae-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;align-items:center;justify-content:center;padding:16px}
+.ae-modal-overlay.open{display:flex}
+.ae-modal{background:var(--drawer-bg);border:1px solid var(--border);border-radius:14px;width:min(700px,96vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.ae-modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--dark-teal),var(--inf-blue))}
+.ae-modal-hdr-left{display:flex;align-items:center;gap:12px;flex:1}
+.ae-modal-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0}
+.ae-modal-title{font-size:16px;font-weight:700;color:var(--white)}
+.ae-modal-sub{font-size:11px;color:var(--mid);margin-top:2px}
+.ae-modal-close{background:none;border:none;color:var(--mid);font-size:22px;cursor:pointer;padding:0 4px}
+.ae-modal-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.1)}
+.ae-modal-stat{text-align:center}
+.ae-modal-stat-val{font-size:16px;font-weight:700;color:var(--wasabi)}
+.ae-modal-stat-val.a{color:var(--amber)}
+.ae-modal-stat-lbl{font-size:10px;color:var(--mid);text-transform:uppercase;letter-spacing:.4px}
+.ae-modal-tabs{display:flex;border-bottom:1px solid var(--border)}
+.ae-modal-tab{padding:10px 18px;font-size:11px;font-weight:600;color:var(--mid);cursor:pointer;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.5px}
+.ae-modal-tab.active{color:var(--wasabi);border-bottom-color:var(--wasabi)}
+.ae-modal-body{padding:16px 20px;overflow-y:auto;flex:1}
+.ae-deal-card{background:var(--inf-blue);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.ae-deal-card-hdr{padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:background .15s}
+.ae-deal-card-hdr:hover{background:rgba(4,67,85,.5)}
+.ae-deal-card-body{display:none;padding:12px;border-top:1px solid var(--border)}
+.ae-deal-card-body.open{display:block}
+.ae-deal-ns-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.ae-deal-coach-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:10px}
+.ae-deal-coach-tab{padding:6px 12px;font-size:11px;font-weight:600;color:var(--mid);cursor:pointer;border-bottom:2px solid transparent}
+.ae-deal-coach-tab.active{color:var(--wasabi);border-bottom-color:var(--wasabi)}
+.ae-deal-coach-pane{display:none}
+.ae-deal-coach-pane.active{display:block}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:400;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--drawer-bg);border:1px solid var(--border);border-radius:14px;width:min(620px,96vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;background:linear-gradient(135deg,var(--dark-teal),var(--inf-blue))}
+.modal-title{font-size:16px;font-weight:700;color:var(--white)}
+.modal-sub{font-size:11px;color:var(--mid);margin-top:2px}
+.modal-close{background:none;border:none;color:var(--mid);font-size:22px;cursor:pointer;line-height:1;padding:0 4px}
+.modal-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--drawer-bg)}
+.modal-tab{padding:9px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--mid);cursor:pointer;border-bottom:2px solid transparent}
+.modal-tab.active{color:var(--wasabi);border-bottom-color:var(--wasabi)}
+.modal-body{padding:16px 20px;overflow-y:auto;flex:1}
+.ns-tbl{width:100%;border-collapse:collapse;margin-bottom:12px}
+.ns-tbl th{background:var(--dark-teal);padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--mid);text-align:left}
+.ns-tbl td{padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border)}
+.mc{cursor:pointer;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;transition:all .15s;display:inline-block;margin:1px;white-space:nowrap}
+.mc:hover{opacity:.8;transform:scale(1.1)}
+.mc.r{background:rgba(232,57,77,.2);color:var(--red);border:1px solid var(--red)}
+.mc.a{background:rgba(245,166,35,.2);color:var(--amber);border:1px solid var(--amber)}
+.mc.g{background:rgba(99,223,78,.2);color:var(--wasabi);border:1px solid var(--wasabi)}
+.nowsell-cell{white-space:normal;min-width:200px;line-height:1.8}
+.actions-cell{white-space:nowrap;min-width:180px}
+.coaching-drawer{display:none;background:var(--inf-blue);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:8px}
+.coaching-drawer.open{display:block}
+.cd-title{font-size:12px;font-weight:700;color:var(--wasabi);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.cd-section{margin-bottom:10px}
+.cd-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mid);margin-bottom:4px}
+.cd-text{font-size:12px;line-height:1.5;color:var(--off-white)}
+.cd-steps{padding-left:16px}
+.cd-steps li{font-size:12px;line-height:1.5;color:var(--off-white);margin-bottom:4px}
+.cd-crm-link{display:inline-block;margin-top:6px;padding:5px 10px;background:rgba(4,67,85,.7);border:1px solid var(--border);border-radius:6px;color:#7bcfe8;font-size:11px;font-family:var(--mono);text-decoration:none}
+.coach-grid{display:grid;grid-template-columns:1fr;gap:16px}
+.coach-card{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:16px}
+.coach-action-item{font-size:11px;color:var(--off-white);padding:4px 0;padding-left:12px;position:relative;line-height:1.4}
+.coach-action-item::before{content:"→";position:absolute;left:0;color:var(--wasabi)}
+.wr-panel{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:20px}
+.wr-title{font-size:15px;font-weight:700;color:var(--wasabi);margin-bottom:8px}
+.wr-text{font-size:13px;line-height:1.7;color:var(--off-white);margin-bottom:16px;white-space:pre-line}
+.wr-controls{display:flex;gap:10px;flex-wrap:wrap}
+.wr-btn{padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:opacity .2s;letter-spacing:.3px}
+.wr-btn:hover{opacity:.85}
+.wr-btn.play{background:var(--wasabi);color:var(--inf-blue)}
+.wr-btn.stop{background:var(--red);color:#fff}
+.wr-status{font-size:11px;color:var(--mid);margin-top:8px}
+.won-footer{background:var(--dark-teal);font-weight:700}
+.won-footer td{color:var(--wasabi)}
+.ssc-footer{padding:10px 24px;font-size:10px;color:var(--mid);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;background:var(--drawer-bg)}
+.ssc-footer-left{letter-spacing:.3px}
+.ssc-footer-right{font-family:var(--mono);letter-spacing:.2px}
+.qtr-prompt{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:14px}
+.qtr-prompt-icon{font-size:38px}
+.qtr-prompt-title{font-size:18px;font-weight:700;color:var(--white)}
+.qtr-prompt-meta{font-size:12px;color:var(--mid)}
+.qtr-prompt-stats{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:4px 0 8px}
+.qtr-stat-pill{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:10px 18px;text-align:center;min-width:100px}
+.qtr-stat-pill-val{font-size:20px;font-weight:700;color:var(--wasabi)}
+.qtr-stat-pill-lbl{font-size:10px;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.run-btn{padding:12px 28px;background:var(--wasabi);color:var(--inf-blue);font-weight:700;border:none;border-radius:10px;cursor:pointer;font-size:13px;letter-spacing:.3px;transition:opacity .2s;display:inline-flex;align-items:center;gap:8px}
+.run-btn:hover{opacity:.85}
+.run-btn:disabled{opacity:.45;cursor:not-allowed}
+.run-btn .spinner{width:13px;height:13px;border:2px solid rgba(3,45,66,.6);border-top-color:var(--inf-blue);border-radius:50%;animation:spin .7s linear infinite;display:none;flex-shrink:0}
+.run-btn.loading .spinner{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.qtr-status{font-size:11px;color:var(--mid);min-height:16px;text-align:center}
+.qtr-results{width:100%;text-align:left;margin-top:4px}
+.crm-a{color:#7bcfe8;text-decoration:none;font-family:var(--mono);font-size:11px}
+.crm-a:hover{text-decoration:underline}
+.act-btn{padding:4px 8px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--dark-teal);color:var(--mid);transition:all .15s;margin:0 2px}
+.act-btn:hover{border-color:var(--wasabi);color:var(--wasabi)}
+.crm-btn{text-decoration:none;display:inline-block;color:#7bcfe8 !important;border-color:#1a6c8a !important;background:rgba(4,67,85,.8) !important}
+.crm-btn:hover{border-color:#7bcfe8 !important;color:#fff !important}
+.hg-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center}
+.hg-overlay.open{display:flex}
+.hg-modal{background:var(--drawer-bg);border:1px solid var(--border);border-radius:12px;width:min(720px,96vw);max-height:88vh;overflow-y:auto;padding:24px}
+.hg-modal-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.hg-close{background:none;border:none;color:var(--mid);font-size:22px;cursor:pointer}
+.hygiene-section{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 16px;margin:12px 0}
+.hygiene-section-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;font-weight:700;letter-spacing:.06em;margin-bottom:8px}
+.hygiene-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;font-size:12px;line-height:1.55}
+.hygiene-step-num{background:rgba(99,223,78,.12);color:var(--wasabi);border:1px solid rgba(99,223,78,.3);border-radius:4px;padding:2px 8px;font-family:var(--mono);font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.fcast-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-family:var(--mono);font-size:10px;font-weight:700}
+.fcast-ok{background:rgba(99,223,78,.1);color:var(--wasabi)}
+.fcast-warn{background:rgba(167,139,250,.12);color:#c4b5fd;border:1px solid rgba(167,139,250,.35)}
+.fcast-gap{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.fcast-both{background:rgba(232,57,77,.12);color:var(--red);border:1px solid rgba(232,57,77,.4)}
+.ns-badge{cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;transition:transform .1s,opacity .1s;display:inline-block;margin:1px}
+.ns-badge:hover{transform:scale(1.15);opacity:.85}
+.bc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:16px}
+.bc-overlay.open{display:flex}
+.bc-modal{background:var(--drawer-bg);border:1px solid var(--border);border-radius:12px;width:min(560px,96vw);max-height:85vh;overflow-y:auto;padding:20px}
+.quota-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:400;align-items:center;justify-content:center;padding:20px}
+.quota-overlay.open{display:flex}
+.quota-modal{background:var(--drawer-bg);border:1px solid var(--border);border-radius:14px;width:min(620px,96vw);max-height:90vh;overflow-y:auto}
+.quota-hdr{padding:18px 22px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--dark-teal),var(--inf-blue));display:flex;align-items:center;justify-content:space-between;border-radius:14px 14px 0 0}
+.quota-hdr-title{font-size:16px;font-weight:700;color:var(--wasabi)}
+.quota-hdr-sub{font-size:11px;color:var(--mid);margin-top:3px}
+.quota-body{padding:20px 22px}
+.quota-input{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-weight:700;color:var(--wasabi);font-family:var(--mono);width:100%;text-align:right;transition:border-color .2s}
+.quota-input:focus{outline:none;border-color:var(--wasabi);background:rgba(99,223,78,.05)}
+.quota-coverage{font-size:12px;font-weight:700;font-family:var(--mono);text-align:center;padding:5px 8px;border-radius:6px;min-width:70px}
+.quota-coverage.red{background:rgba(232,57,77,.15);color:var(--red)}
+.quota-coverage.amb{background:rgba(245,166,35,.15);color:var(--amber)}
+.quota-coverage.grn{background:rgba(99,223,78,.12);color:var(--wasabi)}
+.quota-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:rgba(4,67,85,.3);border-radius:0 0 14px 14px}
+.quota-save-btn{padding:9px 24px;background:var(--wasabi);color:var(--inf-blue);font-weight:700;border:none;border-radius:8px;cursor:pointer;font-size:13px;letter-spacing:.3px;transition:opacity .2s}
+.quota-save-btn:hover{opacity:.85}
+.quota-reset-btn{padding:9px 18px;background:transparent;color:var(--mid);font-weight:600;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;transition:all .2s}
+.quota-reset-btn:hover{border-color:var(--amber);color:var(--amber)}
+.quota-gear-btn{background:none;border:1px solid var(--border);color:var(--mid);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.3px;transition:all .2s;display:flex;align-items:center;gap:5px}
+.quota-gear-btn:hover{border-color:var(--wasabi);color:var(--wasabi)}
+.month-group-hdr td{border-bottom:none !important}
+.month-group-hdr:hover td{background:transparent !important}
+.cl-section{margin-top:28px}
+.cl-section .section-title{color:var(--red)}
+.risk-panel{background:rgba(232,57,77,.07);border:1px solid rgba(232,57,77,.35);border-radius:10px;padding:16px 20px;margin:0 24px 20px}
+.risk-panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.risk-panel-title{font-size:13px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.6px}
+.risk-panel-count{font-size:11px;color:var(--mid)}
+.risk-deal-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(232,57,77,.15);flex-wrap:wrap}
+.risk-deal-row:last-child{border-bottom:none}
+.risk-deal-dtc{font-size:11px;font-weight:700;font-family:var(--mono);color:var(--red);min-width:52px}
+.risk-deal-name{font-size:12px;color:var(--white);flex:1;min-width:120px}
+.risk-deal-ae{font-size:11px;color:var(--mid);font-family:var(--mono)}
+.risk-deal-nnacv{font-size:12px;font-weight:700;color:var(--amber)}
+.risk-deal-tag{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:rgba(232,57,77,.2);color:var(--red);border:1px solid rgba(232,57,77,.35)}
+.copy-brief-btn{padding:5px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--dark-teal);color:var(--mid);transition:all .15s;letter-spacing:.3px}
+.copy-brief-btn:hover{border-color:var(--wasabi);color:var(--wasabi)}
+.copy-brief-btn.copied{border-color:var(--wasabi);color:var(--wasabi);background:rgba(99,223,78,.08)}
+.terr-bar{background:rgba(4,67,85,.7);border-bottom:1px solid var(--border);padding:8px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:11px}
+.terr-bar-item{display:flex;align-items:center;gap:5px;color:var(--mid);white-space:nowrap}
+.terr-bar-val{font-weight:700;font-family:var(--mono)}
+.terr-bar-val.grn{color:var(--wasabi)}
+.terr-bar-val.amb{color:var(--amber)}
+.terr-bar-val.red{color:var(--red)}
+.terr-bar-sep{color:var(--border);font-size:14px;margin:0 2px}
+/* ── TOUCH TARGET EXPANSION (all breakpoints) ───────────────────────── */
+.ns-badge,.ae-badge-btn,.mc{position:relative}
+.ns-badge::before,.ae-badge-btn::before,.mc::before{content:'';position:absolute;inset:-8px -6px}
+
+/* ── TABLET / iPAD MINI  481–768px ──────────────────────────────────── */
+@media(min-width:481px) and (max-width:768px){
+  .stat-row{grid-template-columns:repeat(3,1fr);padding:12px 16px;gap:10px}
+  .sc-val{font-size:18px}
+  .tabs{overflow-x:auto;padding:0 16px;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;position:relative}
+  .tabs::after{content:'';position:absolute;right:0;top:0;bottom:1px;width:32px;background:linear-gradient(to right,transparent,var(--inf-blue));pointer-events:none}
+  .tab{white-space:nowrap;padding:10px 14px;flex-shrink:0;font-size:11px}
+  .section{padding:16px 18px}
+  .hdr{padding:14px 18px;gap:10px}
+  .hdr-title{font-size:17px}
+  .hdr-badges{gap:6px;flex-wrap:wrap}
+  .ae-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .ae-stats{grid-template-columns:1fr 1fr 1fr}
+  .ae-stat-val{font-size:13px}
+  .ae-modal{width:min(680px,96vw);max-height:88vh}
+  .ae-modal-stats{grid-template-columns:repeat(4,1fr)}
+  .modal{width:min(600px,96vw);max-height:88vh}
+  .hg-modal{width:min(680px,96vw);max-height:86vh}
+  .terr-bar{padding:6px 18px;gap:12px;font-size:10px}
+  .risk-panel{margin:0 18px 16px}
+  /* Table: hide lower-priority columns on tablet */
+  #tbl-pipe th:nth-child(4),#tbl-pipe td:nth-child(4){display:none}
+  .wr-text{max-height:36vh;overflow-y:auto}
+  .coach-card{padding:12px}
+}
+
+/* ── MOBILE PHONE  ≤480px ────────────────────────────────────────────── */
+@media(max-width:480px){
+  /* Header: collapse to single compact bar */
+  .hdr{padding:10px 12px;gap:6px;flex-wrap:nowrap;align-items:center}
+  .hdr-left{gap:2px;flex:1;min-width:0}
+  .hdr-title{font-size:14px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hdr-sub,.hdr-meta{display:none}
+  .hdr-badges .bdg:not(#hdr-days):not(#hdr-won){display:none}
+  .hdr-badges{gap:4px;flex-wrap:nowrap}
+  .bdg{padding:3px 8px;font-size:10px}
+  /* Territory health bar: wrap tightly */
+  .terr-bar{padding:5px 12px;gap:8px;font-size:10px}
+  .terr-bar-sep{display:none}
+  .terr-bar-item{white-space:nowrap}
+  /* Stat cards: 2-column compact */
+  .stat-row{grid-template-columns:repeat(2,1fr);padding:10px 12px;gap:8px}
+  .sc{padding:10px 12px}
+  .sc-val{font-size:18px}
+  .sc-lbl{font-size:9px}
+  .sc-sub{font-size:9px}
+  /* Tab row: horizontally scrollable with fade hint */
+  .tabs{overflow-x:auto;padding:0 12px;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;position:relative;scroll-snap-type:x mandatory}
+  .tabs::after{content:'';position:absolute;right:0;top:0;bottom:1px;width:28px;background:linear-gradient(to right,transparent,var(--inf-blue));pointer-events:none}
+  .tab{white-space:nowrap;padding:10px 12px;flex-shrink:0;font-size:11px;scroll-snap-align:start}
+  /* Section padding */
+  .section{padding:12px 12px}
+  .section-title{font-size:12px}
+  /* Pipeline table: hide Prob%, Days-in-Stage implied cols, keep essentials */
+  #tbl-pipe th:nth-child(4),#tbl-pipe td:nth-child(4),
+  #tbl-pipe th:nth-child(8),#tbl-pipe td:nth-child(8){display:none}
+  td{padding:7px 8px;font-size:11px}
+  thead th{padding:8px;font-size:10px}
+  /* AE stack rank: single column */
+  .ae-grid{grid-template-columns:1fr;gap:10px}
+  .ae-stats{grid-template-columns:1fr 1fr 1fr}
+  .ae-stat-val{font-size:13px}
+  .ae-stat-lbl{font-size:8px}
+  .ae-name{font-size:13px}
+  .ae-terr{font-size:9px}
+  .coach-card{padding:12px}
+  .coach-action-item{font-size:10px}
+  /* Risk panel */
+  .risk-panel{margin:0 12px 14px;padding:12px}
+  /* War Room script: scrollable cap so play button stays visible */
+  .wr-text{max-height:32vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .wr-panel{padding:14px}
+  /* ── BOTTOM SHEET MODALS on mobile ───────────────────────────────── */
+  /* AE modal → bottom sheet */
+  .ae-modal-overlay{padding:0;align-items:flex-end}
+  .ae-modal{
+    width:100%;max-height:88vh;border-radius:18px 18px 0 0;
+    border-left:none;border-right:none;border-bottom:none
+  }
+  .ae-modal::before{content:'';display:block;width:36px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;margin:10px auto 0;flex-shrink:0}
+  .ae-modal-hdr{padding:12px 16px}
+  .ae-modal-avatar{width:36px;height:36px;font-size:13px}
+  .ae-modal-title{font-size:14px}
+  .ae-modal-stats{grid-template-columns:repeat(2,1fr);gap:6px;padding:10px 16px}
+  .ae-modal-stat-val{font-size:14px}
+  .ae-modal-tab{padding:8px 12px;font-size:10px}
+  .ae-modal-body{padding:12px 14px}
+  /* Deal modal → bottom sheet */
+  .modal-overlay{padding:0;align-items:flex-end}
+  .modal{
+    width:100%;max-height:88vh;border-radius:18px 18px 0 0;
+    border-left:none;border-right:none;border-bottom:none
+  }
+  .modal::before{content:'';display:block;width:36px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;margin:10px auto 0;flex-shrink:0}
+  .modal-hdr{padding:12px 16px}
+  .modal-body{padding:12px 14px}
+  /* Hygiene modal → bottom sheet */
+  .hg-overlay{padding:0;align-items:flex-end}
+  .hg-modal{
+    width:100%;max-height:88vh;border-radius:18px 18px 0 0;
+    border-left:none;border-right:none;border-bottom:none;
+    padding:18px 16px
+  }
+  .hg-modal::before{content:'';display:block;width:36px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;margin:-8px auto 12px;flex-shrink:0}
+  /* Quota modal → bottom sheet */
+  .quota-overlay{padding:0;align-items:flex-end}
+  .quota-modal{
+    width:100%;max-height:90vh;border-radius:18px 18px 0 0;
+    border-left:none;border-right:none;border-bottom:none
+  }
+  .quota-hdr{border-radius:18px 18px 0 0;padding:14px 16px}
+  .quota-hdr::before{content:'';display:block;width:36px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;margin:-4px auto 10px}
+  .quota-body{padding:14px 16px}
+  .quota-footer{border-radius:0;padding:10px 16px}
+  /* Badge coach modal → bottom sheet */
+  .bc-overlay{padding:0;align-items:flex-end}
+  .bc-modal{
+    width:100%;max-height:85vh;border-radius:18px 18px 0 0;
+    border-left:none;border-right:none;border-bottom:none;
+    padding:18px 16px
+  }
+  .bc-modal::before{content:'';display:block;width:36px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;margin:-8px auto 12px}
+  /* Copy/email button row in AE modal header */
+  .ae-modal-hdr .copy-brief-btn{padding:4px 8px;font-size:9px}
+  /* Footer */
+  .ssc-footer{padding:8px 12px;font-size:9px;gap:4px}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-title">⚡ ServiceNow Sales Command Centre</div>
+    <div class="hdr-sub" id="hdr-sub">NowSell Coaching Dashboard — Territory Pipeline</div>
+    <div class="hdr-meta" id="hdr-meta">📅 Loading...</div>
+  </div>
+  <div class="hdr-badges">
+    <span class="bdg amb" id="hdr-days">Loading...</span>
+    <span class="bdg grn" id="hdr-won">$0 Net Won CQ</span>
+    <span class="bdg inf" id="hdr-terr">Territory</span>
+    <span class="bdg inf">NowSell</span>
+  </div>
+</div>
+
+<div class="terr-bar" id="terr-bar" style="display:none">
+  <div class="terr-bar-item">📊 Territory Health</div>
+  <div class="terr-bar-sep">|</div>
+  <div class="terr-bar-item">Pipeline: <span class="terr-bar-val" id="tb-pipe">—</span></div>
+  <div class="terr-bar-sep">|</div>
+  <div class="terr-bar-item">Coverage: <span class="terr-bar-val" id="tb-cov">—</span></div>
+  <div class="terr-bar-sep">|</div>
+  <div class="terr-bar-item">Proj Attainment: <span class="terr-bar-val" id="tb-attain">—</span></div>
+  <div class="terr-bar-sep">|</div>
+  <div class="terr-bar-item">Won CQ: <span class="terr-bar-val grn" id="tb-won">—</span></div>
+  <div class="terr-bar-sep">|</div>
+  <div class="terr-bar-item">Top Deal: <span class="terr-bar-val grn" id="tb-top">—</span></div>
+  <div class="terr-bar-sep" id="tb-win-sep" style="display:none">|</div>
+  <div class="terr-bar-item" id="tb-win-rate" style="display:none;align-items:center;gap:4px"></div>
+  <div class="terr-bar-sep" id="tb-risk-sep" style="display:none">|</div>
+  <div class="terr-bar-item" id="tb-risk" style="display:none"></div>
+</div>
+
+<div class="stat-row">
+  <div class="sc" onclick="switchTab('q1')">
+    <div class="sc-lbl" id="sc-lbl-won">CQ Won (Net NNACV)</div>
+    <div class="sc-val a" id="s-won">$0</div>
+    <div class="sc-sub" id="s-won-sub">0 deals · Q not yet started</div>
+  </div>
+  <div class="sc" onclick="switchTab('q1')">
+    <div class="sc-lbl" id="sc-lbl-pipe">CQ Pipeline (Net)</div>
+    <div class="sc-val" id="s-pipe">—</div>
+    <div class="sc-sub" id="s-pipe-sub">— deals · net NNACV</div>
+  </div>
+  <div class="sc" onclick="switchTab('q2')">
+    <div class="sc-lbl" id="sc-lbl-q2">Fwd Q1 Pipeline <span style="color:var(--wasabi);font-size:9px;margin-left:4px">▶ RUN</span></div>
+    <div class="sc-val" id="s-q2">—</div>
+    <div class="sc-sub" id="s-q2-sub">click to run</div>
+  </div>
+  <div class="sc" onclick="switchTab('q3')">
+    <div class="sc-lbl" id="sc-lbl-q3">Fwd Q2 Pipeline <span style="color:var(--wasabi);font-size:9px;margin-left:4px">▶ RUN</span></div>
+    <div class="sc-val" id="s-q3">—</div>
+    <div class="sc-sub" id="s-q3-sub">click to run</div>
+  </div>
+  <div class="sc" onclick="switchTab('q4')">
+    <div class="sc-lbl" id="sc-lbl-q4">Fwd Q3 Pipeline <span style="color:var(--wasabi);font-size:9px;margin-left:4px">▶ RUN</span></div>
+    <div class="sc-val" id="s-q4">—</div>
+    <div class="sc-sub" id="s-q4-sub">click to run</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" id="tab-q1" onclick="switchTab('q1')">CQ Pipeline</div>
+  <div class="tab" id="tab-q2" onclick="switchTab('q2')">Fwd Q2</div>
+  <div class="tab" id="tab-q3" onclick="switchTab('q3')">Fwd Q3</div>
+  <div class="tab" id="tab-q4" onclick="switchTab('q4')">Fwd Q4</div>
+  <div class="tab" id="tab-ae" onclick="switchTab('ae')">AE Stack Rank</div>
+  <div class="tab" id="tab-coach" onclick="switchTab('coach')">Coaching</div>
+  <div class="tab" id="tab-war" onclick="switchTab('war')">War Room 🎙</div>
+</div>
+
+<div id="pane-q1" class="section" style="display:block">
+  <div class="section-title" id="pipe-section-title">CQ Open Pipeline</div>
+  <div id="risk-panel" class="risk-panel" style="display:none;margin:0 0 20px">
+    <div class="risk-panel-hdr">
+      <div class="risk-panel-title">🚨 Deals at Risk This Week</div>
+      <span class="risk-panel-count" id="risk-count"></span>
+    </div>
+    <div id="risk-deals"></div>
+  </div>
+  <div id="unassigned-panel" class="risk-panel" style="display:none;margin:0 0 20px;background:rgba(245,166,35,.07);border-color:rgba(245,166,35,.35)">
+    <div class="risk-panel-hdr">
+      <div class="risk-panel-title" style="color:var(--amber)">⚠ Unassigned Deals — AE Ownership Missing</div>
+      <span class="risk-panel-count" id="unassigned-count"></span>
+    </div>
+    <div id="unassigned-deals"></div>
+  </div>
+  <div class="tbl-wrap" style="margin-bottom:24px">
+    <table id="tbl-pipe">
+      <thead><tr>
+        <th>AE</th><th>Opportunity</th><th>Stage</th><th>Prob%</th>
+        <th>Net NNACV</th><th>Close</th><th>NowSell</th><th>Forecast</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="tbody-pipe"></tbody>
+    </table>
+  </div>
+  <div class="section-title" id="won-section-title">CQ Closed Won</div>
+  <div class="tbl-wrap" style="margin-bottom:24px">
+    <table id="tbl-won">
+      <thead><tr>
+        <th>OPTY #</th><th>Opportunity Name</th><th>Account</th>
+        <th>AE</th><th>Territory</th><th>Net NNACV</th><th>Close Date</th>
+      </tr></thead>
+      <tbody id="tbody-won"></tbody>
+      <tfoot><tr class="won-footer" id="won-footer-row"></tr></tfoot>
+    </table>
+  </div>
+  <div class="cl-section" id="cl-section" style="display:none">
+    <div class="section-title" id="cl-section-title">⚠ Closed Lost Downsells</div>
+    <div class="tbl-wrap">
+      <table id="tbl-cl">
+        <thead><tr>
+          <th>OPTY #</th><th>Opportunity Name</th><th>Account</th>
+          <th>AE</th><th>Territory</th><th>Net NNACV</th><th>Close Date</th>
+        </tr></thead>
+        <tbody id="tbody-cl"></tbody>
+        <tfoot><tr class="won-footer" id="cl-footer-row"></tr></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="pane-q2" class="section" style="display:none">
+  <div id="q2-prompt" class="qtr-prompt">
+    <div class="qtr-prompt-icon">📊</div>
+    <div class="qtr-prompt-title" id="q2-prompt-title">Forward Quarter Pipeline</div>
+    <div class="qtr-prompt-meta" id="q2-prompt-meta">—</div>
+    <div class="qtr-prompt-stats">
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q2-pill-pipe">—</div><div class="qtr-stat-pill-lbl">Pipeline</div></div>
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q2-pill-n">—</div><div class="qtr-stat-pill-lbl">Deals</div></div>
+    </div>
+    <button class="run-btn" id="btn-q2" onclick="runQtrReport('q2')"><span class="spinner"></span><span class="btn-txt">▶ Run Pipeline Report</span></button>
+    <div class="qtr-status" id="status-q2"></div>
+  </div>
+  <div id="q2-results" class="qtr-results" style="display:none"></div>
+</div>
+
+<div id="pane-q3" class="section" style="display:none">
+  <div id="q3-prompt" class="qtr-prompt">
+    <div class="qtr-prompt-icon">📊</div>
+    <div class="qtr-prompt-title" id="q3-prompt-title">Forward Quarter Pipeline</div>
+    <div class="qtr-prompt-meta" id="q3-prompt-meta">—</div>
+    <div class="qtr-prompt-stats">
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q3-pill-pipe">—</div><div class="qtr-stat-pill-lbl">Pipeline</div></div>
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q3-pill-n">—</div><div class="qtr-stat-pill-lbl">Deals</div></div>
+    </div>
+    <button class="run-btn" id="btn-q3" onclick="runQtrReport('q3')"><span class="spinner"></span><span class="btn-txt">▶ Run Pipeline Report</span></button>
+    <div class="qtr-status" id="status-q3"></div>
+  </div>
+  <div id="q3-results" class="qtr-results" style="display:none"></div>
+</div>
+
+<div id="pane-q4" class="section" style="display:none">
+  <div id="q4-prompt" class="qtr-prompt">
+    <div class="qtr-prompt-icon">📊</div>
+    <div class="qtr-prompt-title" id="q4-prompt-title">Forward Quarter Pipeline</div>
+    <div class="qtr-prompt-meta" id="q4-prompt-meta">—</div>
+    <div class="qtr-prompt-stats">
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q4-pill-pipe">—</div><div class="qtr-stat-pill-lbl">Pipeline</div></div>
+      <div class="qtr-stat-pill"><div class="qtr-stat-pill-val" id="q4-pill-n">—</div><div class="qtr-stat-pill-lbl">Deals</div></div>
+    </div>
+    <button class="run-btn" id="btn-q4" onclick="runQtrReport('q4')"><span class="spinner"></span><span class="btn-txt">▶ Run Pipeline Report</span></button>
+    <div class="qtr-status" id="status-q4"></div>
+  </div>
+  <div id="q4-results" class="qtr-results" style="display:none"></div>
+</div>
+
+<div id="pane-ae" class="section" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+    <div class="section-title" id="ae-rank-title" style="margin-bottom:0;padding-bottom:0;border-bottom:none">AE Stack Rank</div>
+    <button class="quota-gear-btn" onclick="openQuotaModal()">⚙️ Quota Settings</button>
+  </div>
+  <div class="ae-grid" id="ae-grid"></div>
+</div>
+
+<div id="pane-coach" class="section" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+    <div class="section-title" id="coach-title" style="margin-bottom:0;padding-bottom:0;border-bottom:none">Manager Coaching Actions</div>
+    <span style="font-size:10px;color:var(--mid)">📋 Copy Brief — copies to clipboard · ✉ Email AE — opens in your mail client</span>
+  </div>
+  <div class="coach-grid" id="coach-grid"></div>
+</div>
+
+<div id="pane-war" class="section" style="display:none">
+  <div class="wr-panel">
+    <div class="wr-title" id="wr-title">🎙 War Room Briefing</div>
+    <div class="wr-text" id="wrText">Loading briefing...</div>
+    <div class="wr-controls">
+      <button class="wr-btn play" id="wr-play-btn" onclick="playWR()">▶ Play Briefing</button>
+      <button class="wr-btn stop" onclick="stopWR()">■ Stop</button>
+    </div>
+    <div class="wr-status" id="wr-status"></div>
+    <div id="wr-compat-note" style="margin-top:10px;font-size:10px;color:var(--mid);line-height:1.5;display:none">
+      ⚠️ Your browser does not support audio playback (Web Speech API). The briefing text above is your script — read it directly or copy it for use in a call.
+      <br>For audio playback, open this file in Chrome or Edge.
+    </div>
+    <div id="wr-compat-ok" style="margin-top:10px;font-size:10px;color:var(--mid);line-height:1.5">
+      ⓘ Audio uses your browser's built-in text-to-speech (Web Speech API). Works best in Chrome and Edge.
+      The briefing text above is always readable regardless of audio support.
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="dealModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div><div class="modal-title" id="modal-title">Deal Details</div><div class="modal-sub" id="modal-sub"></div></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <div class="modal-tab active" id="modal-tab-status" onclick="switchModalTab('status')">📊 Status</div>
+      <div class="modal-tab" id="modal-tab-ns" onclick="switchModalTab('ns')">🎯 NowSell</div>
+      <div class="modal-tab" id="modal-tab-coach" onclick="switchModalTab('coach')">👔 Manager</div>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="ae-modal-overlay" id="aeModal">
+  <div class="ae-modal">
+    <div class="ae-modal-hdr">
+      <div class="ae-modal-hdr-left">
+        <div class="ae-modal-avatar" id="ae-modal-avatar">AE</div>
+        <div><div class="ae-modal-title" id="ae-modal-title">AE Name</div><div class="ae-modal-sub" id="ae-modal-sub">Territory</div></div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="copy-brief-btn" id="ae-modal-email-btn" onclick="draftEmailToAE(document.getElementById('ae-modal-title').textContent,this)" title="Draft coaching email to AE" style="border-color:rgba(99,223,78,.4);font-size:10px">✉ Email AE</button>
+        <button class="copy-brief-btn" id="ae-modal-copy-btn" onclick="copyCoachBrief(document.getElementById('ae-modal-title').textContent,this)" title="Copy coaching brief" style="font-size:10px">📋 Copy Brief</button>
+        <button class="ae-modal-close" onclick="closeAEModal()">✕</button>
+      </div>
+    </div>
+    <div class="ae-modal-stats" id="ae-modal-stats"></div>
+    <div class="ae-modal-tabs">
+      <div class="ae-modal-tab active" id="aetab-deals" onclick="switchAETab('deals')">📋 Open Deals</div>
+    </div>
+    <div class="ae-modal-body" id="ae-modal-body"></div>
+  </div>
+</div>
+
+<div class="hg-overlay" id="hg-overlay">
+  <div class="hg-modal">
+    <div class="hg-modal-hdr">
+      <div style="font-size:13px;font-weight:700;color:var(--wasabi)">⚡ Forecast Hygiene Coach</div>
+      <button class="hg-close" onclick="closeHygieneModal()">✕</button>
+    </div>
+    <div id="hg-body"></div>
+  </div>
+</div>
+
+<div class="bc-overlay" id="bcOverlay" onclick="if(event.target===this)closeBadgeCoach()">
+  <div class="bc-modal"><div id="bcBody"></div></div>
+</div>
+
+<div class="quota-overlay" id="quotaOverlay" onclick="if(event.target===this)closeQuotaModal()">
+  <div class="quota-modal">
+    <div class="quota-hdr">
+      <div>
+        <div class="quota-hdr-title">⚙️ Quota Settings</div>
+        <div class="quota-hdr-sub" id="quota-hdr-sub">Set AE quotas to update coverage calculations</div>
+      </div>
+      <button style="background:none;border:none;color:var(--mid);font-size:22px;cursor:pointer;padding:0 4px" onclick="closeQuotaModal()">✕</button>
+    </div>
+    <div class="quota-body" id="quota-body"></div>
+    <div class="quota-footer">
+      <button class="quota-reset-btn" onclick="resetQuotas()">↺ Reset to defaults</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;color:var(--mid)" id="quota-saved-msg"></span>
+        <button class="quota-save-btn" onclick="saveQuotas()">Save & Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
