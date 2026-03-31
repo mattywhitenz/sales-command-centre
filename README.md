@@ -25,7 +25,7 @@ A Claude.ai skill that generates an interactive HTML sales pipeline dashboard fr
 
 ### 3 steps — no software required
 
-1. **Download this repo** (or clone it)
+1. **Download this repo** (or clone it) from here: https://github.com/mattywhitenz/sales-command-centre/archive/refs/tags/release.zip 
 2. **Open the `skill/` folder** on your computer — it contains the 3 files Claude needs
 3. **Drag and drop the entire `skill/` folder** into a Claude.ai chat window
 
