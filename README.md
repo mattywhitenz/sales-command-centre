@@ -23,6 +23,8 @@ A Claude.ai skill that generates an interactive HTML sales pipeline dashboard fr
 
 ## Installation
 
+Download HERE: https://github.com/mattywhitenz/sales-command-centre/archive/refs/tags/release.zip
+
 Upload these 3 files to your Claude.ai skill directory (`/mnt/skills/user/servicenow-sales-command-centre/`):
 
 ```
