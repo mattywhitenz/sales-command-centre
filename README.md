@@ -23,20 +23,31 @@ A Claude.ai skill that generates an interactive HTML sales pipeline dashboard fr
 
 ## Installation
 
-Download HERE: https://github.com/mattywhitenz/sales-command-centre/archive/refs/tags/release.zip
+### 3 steps — no software required
 
-Upload these 3 files to your Claude.ai skill directory (`/mnt/skills/user/servicenow-sales-command-centre/`):
+1. **Download this repo** (or clone it)
+2. **Open the `skill/` folder** on your computer — it contains the 3 files Claude needs
+3. **Drag and drop the entire `skill/` folder** into a Claude.ai chat window
 
-```
-SKILL.md              — the skill definition (v17.0 hardened)
-ssc_section_a.html    — standalone HTML/CSS template (42KB)
-ssc_section_b.js      — standalone JS with error boundary (125KB)
-```
+That's it. Claude will detect the skill automatically.
 
-Then type any trigger phrase in Claude.ai:
+### Test it
+
+Type any trigger phrase in Claude.ai:
 - `"sales q2"` / `"sales q1"` / `"sales q3"` / `"sales q4"`
 - `"my pipeline"` / `"command centre"` / `"war room"`
 - `"coaching dashboard"` / `"build dashboard"`
+
+### What's in the `skill/` folder
+
+```
+skill/
+  SKILL.md              — the skill definition (v17.0 hardened, 225KB)
+  ssc_section_a.html    — HTML/CSS template (42KB)
+  ssc_section_b.js      — JavaScript with error boundary (125KB)
+```
+
+> **Tip:** The other files in this repo (`SSC_CHANGELOG.md`, `HARDENING_PROGRESS.md`, `servicenow-sales-command-centre.html`) are reference/documentation only — you do NOT need to upload them.
 
 ## v17.0 Hardening changes
 
@@ -54,11 +65,12 @@ See [HARDENING_PROGRESS.md](HARDENING_PROGRESS.md) for the full audit trail.
 
 ## Repository contents
 
-| File | Purpose |
-|------|---------|
-| `SKILL.md` | The Claude.ai skill definition — upload this |
-| `ssc_section_a.html` | HTML/CSS template — upload this |
-| `ssc_section_b.js` | JavaScript (41+ functions) — upload this |
+| File / Folder | Purpose |
+|---------------|---------|
+| `skill/` | **Drag this folder into Claude.ai** — contains the 3 skill files |
+| `skill/SKILL.md` | Skill definition (v17.0 hardened) |
+| `skill/ssc_section_a.html` | HTML/CSS template |
+| `skill/ssc_section_b.js` | JavaScript (41+ functions, error boundary) |
 | `servicenow-sales-command-centre.html` | Example deployed dashboard (reference only) |
 | `SSC_CHANGELOG.md` | Full version history (v1.0–v16.9) |
 | `HARDENING_PROGRESS.md` | v17.0 hardening audit trail |
